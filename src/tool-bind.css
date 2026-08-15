@@ -1,0 +1,8 @@
+.tool-bind-list{display:flex;flex-direction:column;gap:7px;margin-top:8px;max-height:190px;overflow:auto}
+.tool-bind-list label{display:flex;gap:9px;align-items:flex-start;padding:9px;border:1px solid #e5eaf2;border-radius:9px;background:#fff;cursor:pointer}
+.tool-bind-list label.disabled{opacity:.5;cursor:not-allowed}
+.tool-bind-list input{margin-top:3px}
+.tool-bind-list span{display:flex;min-width:0;flex-direction:column;gap:2px}
+.tool-bind-list b{font-size:12px}
+.tool-bind-list small{color:#7b8798;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.binding-note{font-size:11px!important;line-height:1.55!important;color:#8490a2!important;background:#f5f7fa;padding:8px 9px;border-radius:8px}

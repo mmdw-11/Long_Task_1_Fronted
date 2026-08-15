@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ApiClient, ApiError } from './api';
 import type { Agent, GraphData, Json, Run, Skill, SystemStatus, Tool, Workflow } from './types';
+import { VisualBuilder } from './VisualBuilder';
+import { RunConsole } from './RunConsole';
 
 type Page='overview'|'agents'|'workflows'|'runs'|'skills'|'tools'|'system'|'settings';
 const nav:Array<[Page,string,string]>=[['overview','总览','⌂'],['agents','Agent 编排','◇'],['workflows','工作流','⌘'],['runs','运行中心','▷'],['skills','技能治理','✦'],['tools','工具目录','⬡'],['system','系统管理','▦'],['settings','连接设置','⚙']];
@@ -23,7 +25,7 @@ function App(){
  return <div className="shell">
   <aside><div className="brand"><span className="brandmark">A</span><div><b>AgentForge</b><small>智能体运行平台</small></div></div><nav>{nav.map(([id,label,icon])=><button className={page===id?'active':''} onClick={()=>setPage(id)} key={id}><i>{icon}</i>{label}</button>)}</nav><div className="side-foot"><div className={`health ${online?'ok':''}`}><span/> {online?'后端服务正常':'后端未连接'}</div><small>{short(baseUrl,28)}</small></div></aside>
   <main><header><div><h1>{nav.find(x=>x[0]===page)?.[1]}</h1><p>{subtitles[page]}</p></div><div className="header-actions"><button className="icon-btn" onClick={()=>location.reload()}>↻</button><div className="avatar">{actor.slice(0,1).toUpperCase()}</div></div></header>
-   <section className="content">{page==='overview'&&<Overview api={api} go={setPage}/>} {page==='agents'&&<Agents api={api} notify={notify}/>} {page==='workflows'&&<Workflows api={api} notify={notify}/>} {page==='runs'&&<Runs api={api} notify={notify}/>} {page==='skills'&&<Skills api={api} notify={notify} actor={actor}/>} {page==='tools'&&<Tools api={api} notify={notify}/>} {page==='system'&&<System api={api} notify={notify}/>} {page==='settings'&&<Settings baseUrl={baseUrl} adminKey={adminKey} actor={actor} save={saveSettings}/>}</section>
+   <section className="content">{page==='overview'&&<Overview api={api} go={setPage}/>} {page==='agents'&&<VisualBuilder api={api} notify={notify}/>} {page==='workflows'&&<Workflows api={api} notify={notify}/>} {page==='runs'&&<RunConsole api={api} notify={notify}/>} {page==='skills'&&<Skills api={api} notify={notify} actor={actor}/>} {page==='tools'&&<Tools api={api} notify={notify}/>} {page==='system'&&<System api={api} notify={notify}/>} {page==='settings'&&<Settings baseUrl={baseUrl} adminKey={adminKey} actor={actor} save={saveSettings}/>}</section>
   </main>{toast&&<div className={`toast ${toast.bad?'bad':''}`}>{toast.bad?'!':'✓'} {toast.text}</div>}
  </div>
 }
