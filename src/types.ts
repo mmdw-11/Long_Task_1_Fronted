@@ -1,0 +1,8 @@
+export type Json = Record<string, unknown>;
+export interface Agent { id:string; name:string; sys_prompt:string; model:string; description:string; config:Json; parent_id?:string|null; children:string[] }
+export interface GraphData { agents:Agent[]; connections:Array<{source:string;target:string;conditional?:boolean;condition_key?:string;path_map?:Record<string,string>}>; entry_id?:string|null; entry?:string|null }
+export interface Workflow { id:string; name:string; description:string; tags:string[]; metadata:Json; graph:GraphData; created_at:string; updated_at:string; version:number }
+export interface Run { id:string; workflow_id?:string|null; status:string; input:Json; recursion_limit:number; state:Json; events:Json[]; error?:string|null; parent_run_id?:string|null; retry_count:number; metadata:Json; created_at:string; updated_at:string; finished_at?:string|null; canceled_at?:string|null }
+export interface Skill { id:string; name:string; content:string; description:string; tags:string[]; status:string; version:number; validation?:Json|null; approved_by?:string|null; rollout_percent?:number; metadata:Json; created_at:string; updated_at:string }
+export interface Tool { id:string; name:string; display_name:string; description:string; category:string; enabled:boolean; tags:string[]; metadata:Json; created_at:string; updated_at:string }
+export interface SystemStatus { now:string; capabilities:Record<string,boolean>; models:Record<string,{base_url:string;model:string;configured:boolean}>; storage:Record<string,string>; security?:{admin_key_enabled:boolean;audit_log_path:string} }
