@@ -1,0 +1,6 @@
+.auth-loading{min-height:100vh;display:flex;gap:10px;align-items:center;justify-content:center;color:#7b8591;font-size:12px}
+.user-chip{display:flex;align-items:center;gap:8px}
+.user-chip>span{display:grid}
+.user-chip b{font-size:11px}
+.user-chip small{font-size:9px;color:#8d96a2}
+.logout-btn{padding:7px 10px;font-size:10px}

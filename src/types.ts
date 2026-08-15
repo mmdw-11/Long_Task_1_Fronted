@@ -6,3 +6,4 @@ export interface Run { id:string; workflow_id?:string|null; status:string; input
 export interface Skill { id:string; name:string; content:string; description:string; tags:string[]; status:string; version:number; validation?:Json|null; approved_by?:string|null; rollout_percent?:number; metadata:Json; created_at:string; updated_at:string }
 export interface Tool { id:string; name:string; display_name:string; description:string; category:string; enabled:boolean; tags:string[]; metadata:Json; created_at:string; updated_at:string }
 export interface SystemStatus { now:string; capabilities:Record<string,boolean>; models:Record<string,{base_url:string;model:string;configured:boolean}>; storage:Record<string,string>; security?:{admin_key_enabled:boolean;audit_log_path:string} }
+export interface AuthUser { id:string; email:string; name:string; created_at:string }
