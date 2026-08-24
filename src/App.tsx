@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ApiClient, ApiError } from './api';
 import type { Agent, AuthUser, GraphData, Json, Run, Skill, SystemStatus, Tool, Workflow } from './types';
 import { VisualBuilder } from './VisualBuilder';
@@ -17,14 +17,17 @@ function App(){
  const [page,setPage]=useState<Page>((location.hash.slice(1) as Page)||'overview');
  const [baseUrl,setBaseUrl]=useState(localStorage.getItem('apiUrl')||import.meta.env.VITE_API_BASE_URL||'/');
  const [adminKey,setAdminKey]=useState(localStorage.getItem('adminKey')||''); const [actor,setActor]=useState(localStorage.getItem('actor')||'operator');
- const [token,setToken]=useState(localStorage.getItem('authToken')||''); const [user,setUser]=useState<AuthUser|null>(null); const [authReady,setAuthReady]=useState(false);
+ const [token,setToken]=useState(localStorage.getItem('authToken')||''); const [user,setUser]=useState<AuthUser|null>(null); const [authReady,setAuthReady]=useState(false); const authRequestSeq=useRef(0);
  const api=useMemo(()=>new ApiClient(baseUrl,{adminKey,actor,token}),[baseUrl,adminKey,actor,token]);
  const [online,setOnline]=useState(false); const [toast,setToast]=useState<{text:string;bad?:boolean}|null>(null);
  const notify=(text:string,bad=false)=>{setToast({text,bad});setTimeout(()=>setToast(null),3200)};
  useEffect(()=>{location.hash=page},[page]);
- useEffect(()=>{if(!token){setAuthReady(true);setUser(null);return}setAuthReady(false);api.get<{user:AuthUser}>('/api/auth/me').then(v=>{setUser(v.user);setActor(v.user.name);setOnline(true)}).catch(()=>{localStorage.removeItem('authToken');setToken('');setUser(null)}).finally(()=>setAuthReady(true))},[api,token]);
+ // Restore a persisted session only when the application first opens. A login
+ // response is already authoritative; checking /me again during that state
+ // update can let a stale request incorrectly clear the new session.
+ useEffect(()=>{const seq=++authRequestSeq.current;const savedToken=localStorage.getItem('authToken')||'';if(!savedToken){setAuthReady(true);return}const restoreApi=new ApiClient(localStorage.getItem('apiUrl')||'/',{adminKey:localStorage.getItem('adminKey')||'',actor:localStorage.getItem('actor')||'operator',token:savedToken});restoreApi.get<{user:AuthUser}>('/api/auth/me').then(v=>{if(seq!==authRequestSeq.current)return;setUser(v.user);setActor(v.user.name);setOnline(true)}).catch(()=>{if(seq!==authRequestSeq.current)return;if(localStorage.getItem('authToken')===savedToken){localStorage.removeItem('authToken');setToken('');setUser(null)}}).finally(()=>{if(seq===authRequestSeq.current)setAuthReady(true)});},[]);
  useEffect(()=>{if(user)api.get('/api/system/status').then(()=>setOnline(true)).catch(()=>setOnline(false))},[api,user]);
- const authenticated=(value:{token:string;user:AuthUser})=>{localStorage.setItem('authToken',value.token);localStorage.setItem('actor',value.user.name);setActor(value.user.name);setUser(value.user);setToken(value.token);setAuthReady(true)};
+ const authenticated=(value:{token:string;user:AuthUser})=>{authRequestSeq.current++;localStorage.setItem('apiUrl','/');localStorage.setItem('authToken',value.token);localStorage.setItem('actor',value.user.name);setBaseUrl('/');setActor(value.user.name);setToken(value.token);setUser(value.user);setPage('overview');setAuthReady(true);setOnline(true)};
  const logout=async()=>{try{await api.post('/api/auth/logout')}finally{localStorage.removeItem('authToken');setToken('');setUser(null)}};
  const saveSettings=(u:string,k:string,a:string)=>{localStorage.setItem('apiUrl',u);localStorage.setItem('adminKey',k);localStorage.setItem('actor',a);setBaseUrl(u);setAdminKey(k);setActor(a);notify('连接设置已保存')};
  if(!authReady)return <div className="auth-loading"><span className="spinner"/>正在验证登录状态…</div>;

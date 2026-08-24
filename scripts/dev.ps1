@@ -5,13 +5,18 @@ $backendRoot = Join-Path (Split-Path -Parent $frontendRoot) "long_task_1"
 $preferredPython = "D:\SoftWare\Anaconda\envs\Lang_Task\python.exe"
 $python = if (Test-Path -LiteralPath $preferredPython) { $preferredPython } else { "python" }
 
-$backendReady = $false
-try {
-    $response = Invoke-WebRequest -UseBasicParsing -Uri "http://127.0.0.1:8000/api/system/status" -TimeoutSec 2
-    $backendReady = $response.StatusCode -eq 200
-} catch {
-    $backendReady = $false
+function Test-BackendReady {
+    try {
+        $response = Invoke-WebRequest -UseBasicParsing -Uri "http://127.0.0.1:8000/api/system/status" -TimeoutSec 2
+        return $response.StatusCode -in @(200, 401, 403)
+    } catch {
+        $statusCode = $_.Exception.Response.StatusCode.value__
+        return $statusCode -in @(401, 403)
+    }
 }
+
+$backendReady = $false
+$backendReady = Test-BackendReady
 
 if (-not $backendReady) {
     if (-not (Test-Path -LiteralPath $backendRoot)) {
@@ -30,12 +35,7 @@ if (-not $backendReady) {
     $deadline = (Get-Date).AddSeconds(20)
     do {
         Start-Sleep -Milliseconds 500
-        try {
-            $response = Invoke-WebRequest -UseBasicParsing -Uri "http://127.0.0.1:8000/api/system/status" -TimeoutSec 2
-            $backendReady = $response.StatusCode -eq 200
-        } catch {
-            $backendReady = $false
-        }
+        $backendReady = Test-BackendReady
     } until ($backendReady -or (Get-Date) -gt $deadline)
 
     if (-not $backendReady) {

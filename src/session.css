@@ -4,3 +4,29 @@
 .user-chip b{font-size:11px}
 .user-chip small{font-size:9px;color:#8d96a2}
 .logout-btn{padding:7px 10px;font-size:10px}
+.todo-strip{display:grid;gap:8px;margin:10px 0 14px}
+.todo-pill{display:grid;grid-template-columns:22px 1fr;align-items:start;gap:8px;padding:9px 11px;border:1px solid #e3e8ef;background:#fff;border-radius:8px;color:#667085;font-size:12px}
+.todo-pill span{width:18px;height:18px;display:grid;place-items:center;border-radius:50%;background:#f2f4f7;color:#98a2b3;font-size:11px}
+.todo-pill p{margin:0;line-height:1.45}
+.todo-pill.in_progress{border-color:#b9d5ff;background:#f5f9ff;color:#1d4ed8}
+.todo-pill.in_progress span{background:#2563eb;color:#fff}
+.todo-pill.completed{background:#f7fdf9;border-color:#bbf7d0;color:#16803c}
+.todo-pill.completed span{background:#22c55e;color:#fff}
+.plan-event ol{margin:8px 0 0 18px;padding:0;color:#485467}
+.plan-event li{margin:4px 0;line-height:1.45}
+.todo-event{background:#fbfffc}
+.tool-event{background:#f8fafc}
+.approval-event{border-color:#fed7aa;background:#fff7ed}
+.approval-event span{background:#f97316;color:#fff}
+.approval-event.approved{border-color:#bbf7d0;background:#f0fdf4}
+.approval-event.rejected{border-color:#fecdd3;background:#fff1f2}
+.approval-actions{display:flex;gap:8px;margin:10px 0}
+.approval-actions button{padding:7px 10px;font-size:12px}
+.tool-call{margin:8px 0;padding:8px 10px;border-radius:8px;background:#f2f4f7;color:#667085;font-size:12px}
+.tool-call code{margin-left:4px;color:#344054;white-space:pre-wrap}
+.tool-call em{margin-left:8px;font-style:normal;color:#667085}
+.tool-call pre{margin:6px 0 0;white-space:pre-wrap;color:#344054}
+.tool-call strong{display:block;margin-top:6px;color:#b42318;font-weight:600}
+.tool-call.succeeded{background:#f0fdf4;color:#166534}
+.tool-call.failed,.tool-call.unsupported{background:#fff1f2;color:#be123c}
+.tool-call.approval_required{background:#fff7ed;color:#c2410c}

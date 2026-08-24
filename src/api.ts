@@ -4,13 +4,26 @@ export class ApiClient {
   constructor(public baseUrl:string, private credentials:Credentials){ }
   setCredentials(v:Credentials){this.credentials=v}
   getAuthToken(){return this.credentials.token||''}
+  private urls(path:string):string[]{
+    const base=this.baseUrl.trim();
+    const normalized=base==='/'?'':base.replace(/\/$/,'');
+    const primary=`${normalized}${path}`;
+    const localFallback=path;
+    if(typeof window!=='undefined'&&/^localhost$|^127\.0\.0\.1$|^\[::1\]$/.test(window.location.hostname)){
+      return primary===localFallback?[primary]:[primary,localFallback];
+    }
+    return [primary];
+  }
   private async request<T>(path:string, init:RequestInit={}):Promise<T>{
     const headers:Record<string,string>={'Content-Type':'application/json',...(init.headers as Record<string,string>||{})};
     if(this.credentials.adminKey) headers['X-Admin-Key']=this.credentials.adminKey;
     if(this.credentials.actor) headers['X-Actor']=this.credentials.actor;
     if(this.credentials.token) headers.Authorization=`Bearer ${this.credentials.token}`;
-    let response:Response;
-    try{response=await fetch(`${this.baseUrl.replace(/\/$/,'')}${path}`,{...init,headers})}catch{throw new ApiError('无法连接后端，请检查服务地址与 FastAPI 服务状态',0)}
+    let response:Response|undefined,lastNetworkError=false;
+    for(const url of this.urls(path)){
+      try{response=await fetch(url,{...init,headers,credentials:'include'});lastNetworkError=false;break}catch{lastNetworkError=true}
+    }
+    if(!response)throw new ApiError(lastNetworkError?'无法连接后端，请检查服务地址与 FastAPI 服务状态':'请求未发送',0);
     const raw=await response.text(); let data:unknown={};
     try{data=raw?JSON.parse(raw):{}}catch{data={detail:raw}}
     if(!response.ok){const d=data as {detail?:unknown};throw new ApiError(typeof d.detail==='string'?d.detail:`请求失败 (${response.status})`,response.status)}

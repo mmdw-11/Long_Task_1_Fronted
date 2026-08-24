@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { ApiClient } from './api';
+import { ApiClient } from './api';
 import type { AuthUser } from './types';
 
 type Mode='login'|'register'|'forgot'|'reset';
@@ -8,10 +8,11 @@ type AuthResult={token:string;user:AuthUser};
 export function AuthScreen({api,onAuthenticated}:{api:ApiClient;onAuthenticated:(value:AuthResult)=>void}){
  const [mode,setMode]=useState<Mode>('login'); const [busy,setBusy]=useState(false); const [error,setError]=useState(''); const [notice,setNotice]=useState(''); const [resetToken,setResetToken]=useState('');
  const submit=async(e:React.FormEvent<HTMLFormElement>)=>{e.preventDefault();setBusy(true);setError('');setNotice('');const f=new FormData(e.currentTarget);try{
-  if(mode==='login'||mode==='register'){const body=mode==='login'?{email:f.get('email'),password:f.get('password')}:{email:f.get('email'),name:f.get('name'),password:f.get('password')};const result=await api.post<AuthResult>(`/api/auth/${mode}`,body);onAuthenticated(result);return}
-  if(mode==='forgot'){const result=await api.post<{message:string;reset_token?:string}>('/api/auth/forgot-password',{email:f.get('email')});setNotice(result.message);if(result.reset_token){setResetToken(result.reset_token);setMode('reset')}return}
-  await api.post('/api/auth/reset-password',{token:f.get('token'),password:f.get('password')});setNotice('密码已重置，请使用新密码登录');setMode('login')
- }catch(e){setError((e as Error).message)}finally{setBusy(false)}};
+  const authApi=new ApiClient('/',{adminKey:'',actor:'auth'});
+  if(mode==='login'||mode==='register'){const body=mode==='login'?{email:f.get('email'),password:f.get('password')}:{email:f.get('email'),name:f.get('name'),password:f.get('password')};const result=await authApi.post<AuthResult>(`/api/auth/${mode}`,body);onAuthenticated(result);return}
+  if(mode==='forgot'){const result=await authApi.post<{message:string;reset_token?:string}>('/api/auth/forgot-password',{email:f.get('email')});setNotice(result.message);if(result.reset_token){setResetToken(result.reset_token);setMode('reset')}return}
+  await authApi.post('/api/auth/reset-password',{token:f.get('token'),password:f.get('password')});setNotice('密码已重置，请使用新密码登录');setMode('login')
+ }catch(e){const msg=(e as Error).message;if(msg.includes('无法连接后端')){localStorage.setItem('apiUrl','/');setError('已重置后端地址为本地代理，请再次点击登录')}else setError(msg)}finally{setBusy(false)}};
  const change=(next:Mode)=>{setMode(next);setError('');setNotice('')};
  return <main className="auth-page"><section className="auth-hero"><div className="auth-brand"><span>A</span><b>AgentForge</b></div><div><em>AI AGENT OPERATIONS</em><h1>把复杂任务，交给一支<br/>可观察的智能体团队。</h1><p>设计编排、授权工具、实时追踪执行，并保留完整、可审计的任务结果。</p></div><footer>安全会话 · 结构化事件 · 可控工具权限</footer></section><section className="auth-panel"><div className="auth-card"><small>AGENTFORGE CONSOLE</small><h2>{mode==='login'?'欢迎回来':mode==='register'?'创建账户':mode==='forgot'?'找回密码':'设置新密码'}</h2><p>{mode==='login'?'登录后进入智能体运行平台':mode==='register'?'注册后将自动登录':mode==='forgot'?'输入注册邮箱获取重置凭据':'重置凭据 30 分钟内有效'}</p>{error&&<div className="auth-message error">{error}</div>}{notice&&<div className="auth-message">{notice}</div>}<form onSubmit={submit}>
   {mode==='register'&&<label><span>姓名</span><input name="name" autoComplete="name" required placeholder="你的姓名"/></label>}
