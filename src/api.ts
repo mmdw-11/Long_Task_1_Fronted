@@ -8,7 +8,10 @@ export class ApiClient {
     const base=this.baseUrl.trim();
     const normalized=base==='/'?'':base.replace(/\/$/,'');
     const primary=`${normalized}${path}`;
-    const localFallback=path;
+    // Vite's proxy is the first choice during local development. Some local
+    // browser/proxy combinations can abort a proxied request even though the
+    // FastAPI process is healthy, so retry once against FastAPI directly.
+    const localFallback='http://127.0.0.1:8000'+path;
     if(typeof window!=='undefined'&&/^localhost$|^127\.0\.0\.1$|^\[::1\]$/.test(window.location.hostname)){
       return primary===localFallback?[primary]:[primary,localFallback];
     }
@@ -17,7 +20,11 @@ export class ApiClient {
   private async request<T>(path:string, init:RequestInit={}):Promise<T>{
     const headers:Record<string,string>={'Content-Type':'application/json',...(init.headers as Record<string,string>||{})};
     if(this.credentials.adminKey) headers['X-Admin-Key']=this.credentials.adminKey;
-    if(this.credentials.actor) headers['X-Actor']=this.credentials.actor;
+    // HTTP header values must be Latin-1. A Chinese display name used as the
+    // actor previously made fetch throw before any request left the browser.
+    // Authenticated calls are attributed by the backend from the session, so
+    // omitting a non-ASCII X-Actor header is both safe and correct.
+    if(this.credentials.actor && /^[\x20-\x7e]+$/.test(this.credentials.actor)) headers['X-Actor']=this.credentials.actor;
     if(this.credentials.token) headers.Authorization=`Bearer ${this.credentials.token}`;
     let response:Response|undefined,lastNetworkError=false;
     for(const url of this.urls(path)){
