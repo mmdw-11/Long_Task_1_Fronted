@@ -1,3 +1,4 @@
+// 前端共享类型定义，和 FastAPI 返回结构保持一致。
 export type Json = Record<string, unknown>;
 export interface Agent { id:string; name:string; sys_prompt:string; model:string; description:string; config:Json; parent_id?:string|null; children:string[] }
 export interface GraphData { agents:Agent[]; connections:Array<{source:string;target:string;conditional?:boolean;condition_key?:string;path_map?:Record<string,string>}>; entry_id?:string|null; entry?:string|null }

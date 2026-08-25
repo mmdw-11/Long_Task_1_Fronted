@@ -1,8 +1,10 @@
+// 前端主应用入口，负责页面路由、登录态和后端连接状态管理。
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ApiClient, ApiError } from './api';
 import type { Agent, AuthUser, GraphData, Json, Run, Skill, SystemStatus, Tool, Workflow } from './types';
 import { VisualBuilder } from './VisualBuilder';
 import { RunConsole } from './RunConsole';
+import { ToolsPage } from './ToolsPage';
 import { AuthScreen } from './AuthScreen';
 
 type Page='overview'|'agents'|'workflows'|'runs'|'skills'|'tools'|'system'|'settings';
@@ -35,7 +37,7 @@ function App(){
  return <div className="shell">
   <aside><div className="brand"><span className="brandmark">A</span><div><b>AgentForge</b><small>智能体运行平台</small></div></div><nav>{nav.map(([id,label,icon])=><button className={page===id?'active':''} onClick={()=>setPage(id)} key={id}><i>{icon}</i>{label}</button>)}</nav><div className="side-foot"><div className={`health ${online?'ok':''}`}><span/> {online?'后端服务正常':'后端未连接'}</div><small>{short(baseUrl,28)}</small></div></aside>
   <main><header><div><h1>{nav.find(x=>x[0]===page)?.[1]}</h1><p>{subtitles[page]}</p></div><div className="header-actions"><button className="icon-btn" onClick={()=>location.reload()}>↻</button><div className="user-chip"><div className="avatar">{user.name.slice(0,1).toUpperCase()}</div><span><b>{user.name}</b><small>{user.email}</small></span></div><button className="logout-btn" onClick={logout}>退出</button></div></header>
-   <section className="content">{page==='overview'&&<Overview api={api} go={setPage}/>} {page==='agents'&&<VisualBuilder api={api} notify={notify}/>} {page==='workflows'&&<Workflows api={api} notify={notify}/>} {page==='runs'&&<RunConsole api={api} notify={notify}/>} {page==='skills'&&<Skills api={api} notify={notify} actor={actor}/>} {page==='tools'&&<Tools api={api} notify={notify}/>} {page==='system'&&<System api={api} notify={notify}/>} {page==='settings'&&<Settings baseUrl={baseUrl} adminKey={adminKey} actor={actor} save={saveSettings}/>}</section>
+   <section className="content">{page==='overview'&&<Overview api={api} go={setPage}/>} {page==='agents'&&<VisualBuilder api={api} notify={notify}/>} {page==='workflows'&&<Workflows api={api} notify={notify}/>} {page==='runs'&&<RunConsole api={api} notify={notify}/>} {page==='skills'&&<Skills api={api} notify={notify} actor={actor}/>} {page==='tools'&&<ToolsPage api={api} notify={notify}/>} {page==='system'&&<System api={api} notify={notify}/>} {page==='settings'&&<Settings baseUrl={baseUrl} adminKey={adminKey} actor={actor} save={saveSettings}/>}</section>
   </main>{toast&&<div className={`toast ${toast.bad?'bad':''}`}>{toast.bad?'!':'✓'} {toast.text}</div>}
  </div>
 }

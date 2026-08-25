@@ -1,0 +1,25 @@
+/* 工具接入页面样式，服务于 MCP URL 和脚本工具配置控件。 */
+.tools-hero{display:flex;align-items:center;justify-content:space-between;background:#fff;border:1px solid var(--line);border-radius:8px;padding:20px 22px;margin-bottom:14px}
+.tools-hero span{font-size:10px;color:var(--blue);letter-spacing:1.8px;font-weight:800}
+.tools-hero h2{font-size:22px;margin:5px 0}
+.tools-hero p{margin:0;color:#788391;font-size:12px}
+.tool-mode-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.tool-mode-strip>div{background:#fff;border:1px solid var(--line);border-radius:8px;padding:14px 16px;display:grid;gap:4px}
+.tool-mode-strip b{font-size:13px}
+.tool-mode-strip small{color:#8c96a3;font-size:11px}
+.pill{display:inline-flex;align-items:center;border:1px solid #dce5f4;background:#f6f9ff;color:#285fd6;border-radius:999px;padding:4px 9px;font-size:10px}
+.risk{display:inline-flex;border-radius:999px;padding:4px 8px;font-size:10px;background:#eef1f5;color:#606b77}
+.risk.medium,.risk.high{background:#fff4e5;color:#a66700}
+.risk.high{background:#fff0f0;color:#c23838}
+.status-text{font-size:11px;color:#8a94a1}
+.status-text.ok{color:#0b9868}
+.mode-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+.mode-tabs button{text-align:left;display:grid;gap:4px;padding:14px;border-radius:8px}
+.mode-tabs button.active{border-color:#2d67e8;background:#eef4ff;color:#1f55c8}
+.mode-tabs small{font-size:10px;color:#7e8996}
+.tool-editor{padding:22px}
+.tool-editor textarea.code{font-family:'Cascadia Code',Consolas,monospace;font-size:12px;min-height:250px}
+.checkline{display:flex!important;grid-template-columns:none!important;align-items:center;gap:8px}
+.checkline input{width:auto}
+.script-note{margin-top:14px;background:#f7f8fa;border:1px solid #edf0f3;border-radius:8px;padding:11px 13px;color:#687483;font-size:11px}
+@media(max-width:900px){.tools-hero{align-items:flex-start;gap:12px;flex-direction:column}.tool-mode-strip,.mode-tabs{grid-template-columns:1fr}}
