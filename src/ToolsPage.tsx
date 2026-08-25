@@ -31,6 +31,14 @@ export function ToolsPage({ api, notify }: Props) {
       notify((error as Error).message, true);
     }
   };
+  const test = async (tool: Tool) => {
+    try {
+      const result = await api.post<any>(`/api/tools/${tool.id}/test`, { task: `测试 ${tool.display_name} 工具连接` });
+      if (result.status === 'approval_required') notify(`${tool.display_name} 需要审批，已验证安全门禁生效`);
+      else if (result.status === 'succeeded') notify(`${tool.display_name} 测试成功`);
+      else notify(`${tool.display_name} 测试失败：${result.error || '适配器未返回结果'}`, true);
+    } catch (error) { notify((error as Error).message, true); }
+  };
 
   return (
     <>
@@ -86,6 +94,7 @@ export function ToolsPage({ api, notify }: Props) {
                   <td>{formatDate(tool.updated_at)}</td>
                   <td>
                     <button onClick={() => setEdit(tool)}>编辑</button>
+                    <button onClick={() => test(tool)}>测试</button>
                     <button className="danger-link" onClick={() => q.remove(tool.id)}>删除</button>
                   </td>
                 </tr>
