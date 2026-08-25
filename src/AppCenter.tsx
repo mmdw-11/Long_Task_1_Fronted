@@ -4,7 +4,7 @@ import type { ApiClient } from './api';
 import type { Application, Run, Skill, Tool } from './types';
 import './app-center.css';
 
-type Props = { api: ApiClient; notify: (s: string, b?: boolean) => void; go: (p: 'agents' | 'runs' | 'tools' | 'system') => void };
+type Props = { api: ApiClient; notify: (s: string, b?: boolean) => void; go: (p: 'builder' | 'runs' | 'tools' | 'system') => void; openCreate?: boolean; onCreateOpened?: () => void };
 type Template = typeof templates[number];
 type AppPayload = {
   name: string;
@@ -24,7 +24,7 @@ const templates = [
   { type: 'task', title: '长任务应用', desc: '保留上下文防漂移、TODO 和运行总结机制。', icon: '✓' },
 ];
 
-export function AppCenter({ api, notify, go }: Props) {
+export function AppCenter({ api, notify, go, openCreate = false, onCreateOpened }: Props) {
   const [apps, setApps] = useState<Application[]>([]);
   const [tools, setTools] = useState<Tool[]>([]);
   const [skills, setSkills] = useState<Skill[]>([]);
@@ -41,6 +41,7 @@ export function AppCenter({ api, notify, go }: Props) {
       .finally(() => setLoading(false));
   };
   useEffect(load, [api]);
+  useEffect(() => { if (openCreate) { setTemplate(templates[0]); setModal(true); onCreateOpened?.(); } }, [openCreate, onCreateOpened]);
 
   const create = async (payload: AppPayload) => {
     try {
@@ -150,7 +151,7 @@ export function AppCenter({ api, notify, go }: Props) {
                 </dl>
                 <footer>
                   <button onClick={() => setEditing(app)}>配置</button>
-                  <button onClick={() => go('agents')}>编排</button>
+                  <button onClick={() => go('builder')}>编排</button>
                   <button onClick={() => run(app)}>调试</button>
                   <button className="primary" onClick={() => publish(app)}>发布</button>
                 </footer>
