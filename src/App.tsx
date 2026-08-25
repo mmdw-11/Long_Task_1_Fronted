@@ -7,10 +7,11 @@ import { RunConsole } from './RunConsole';
 import { ToolsPage } from './ToolsPage';
 import { AppCenter } from './AppCenter';
 import { AuthScreen } from './AuthScreen';
+import { AppSquare, McpMarketplace, MemoryBanks, QuickStart, SkillMarket, TaskCenter } from './BailianPages';
 import './bailian-console.css';
 
-type Page='overview'|'apps'|'agents'|'workflows'|'runs'|'skills'|'tools'|'system'|'settings';
-const nav:Array<[Page,string,string]>=[['overview','总览','⌂'],['apps','应用管理','▣'],['agents','Agent 编排','◇'],['workflows','工作流','⌘'],['runs','运行中心','▷'],['skills','技能治理','✦'],['tools','MCP 管理','⬡'],['system','API Key','▦'],['settings','连接设置','⚙']];
+type Page='overview'|'apps'|'agents'|'workflows'|'runs'|'skills'|'tools'|'system'|'settings'|'quickstart'|'app-square'|'mcp-market'|'tasks'|'skill-market'|'memories';
+const nav:Array<[Page,string,string]>=[['quickstart','快速开始','✦'],['app-square','应用广场','◇'],['apps','应用管理','▣'],['agents','Managed Agents','⌘'],['tasks','任务中心','▣'],['skill-market','Skill 管理','✧'],['mcp-market','MCP 广场','ϟ'],['tools','MCP 管理','⌁'],['memories','记忆库','◉'],['overview','总览','⌂'],['workflows','工作流','⌘'],['runs','运行中心','▷'],['skills','技能治理','✦'],['system','API Key','▦'],['settings','连接设置','⚙']];
 const fmt=(v?:string|null)=>v?new Date(v).toLocaleString('zh-CN',{hour12:false}):'—';
 const short=(v?:string,n=12)=>v&&v.length>n?`${v.slice(0,n)}…`:v||'—';
 const split=(v:string)=>v.split(',').map(x=>x.trim()).filter(Boolean);
@@ -18,7 +19,7 @@ const json=(v:string):Json=>{try{return JSON.parse(v||'{}')}catch{throw new Erro
 const statusLabel:Record<string,string>={succeeded:'成功',failed:'失败',running:'运行中',queued:'排队中',created:'已创建',canceled:'已取消',cancel_requested:'取消中',published:'已发布',candidate:'候选',validated:'已验证',rejected:'已拒绝',retired:'已退役'};
 
 function App(){
- const [page,setPage]=useState<Page>((location.hash.slice(1) as Page)||'overview');
+ const [page,setPage]=useState<Page>((location.hash.slice(1) as Page)||'quickstart');
  const [baseUrl,setBaseUrl]=useState(localStorage.getItem('apiUrl')||import.meta.env.VITE_API_BASE_URL||'/');
  const [adminKey,setAdminKey]=useState(localStorage.getItem('adminKey')||''); const [actor,setActor]=useState(localStorage.getItem('actor')||'operator');
  const [token,setToken]=useState(localStorage.getItem('authToken')||''); const [user,setUser]=useState<AuthUser|null>(null); const [authReady,setAuthReady]=useState(false); const authRequestSeq=useRef(0);
@@ -31,7 +32,7 @@ function App(){
  // update can let a stale request incorrectly clear the new session.
  useEffect(()=>{const seq=++authRequestSeq.current;const savedToken=localStorage.getItem('authToken')||'';if(!savedToken){setAuthReady(true);return}const restoreApi=new ApiClient(localStorage.getItem('apiUrl')||'/',{adminKey:localStorage.getItem('adminKey')||'',actor:localStorage.getItem('actor')||'operator',token:savedToken});restoreApi.get<{user:AuthUser}>('/api/auth/me').then(v=>{if(seq!==authRequestSeq.current)return;setUser(v.user);setActor(v.user.email);localStorage.setItem('actor',v.user.email);setOnline(true)}).catch(()=>{if(seq!==authRequestSeq.current)return;if(localStorage.getItem('authToken')===savedToken){localStorage.removeItem('authToken');setToken('');setUser(null)}}).finally(()=>{if(seq===authRequestSeq.current)setAuthReady(true)});},[]);
  useEffect(()=>{if(user)api.get('/api/system/status').then(()=>setOnline(true)).catch(()=>setOnline(false))},[api,user]);
- const authenticated=(value:{token:string;user:AuthUser})=>{authRequestSeq.current++;localStorage.setItem('apiUrl','/');localStorage.setItem('authToken',value.token);localStorage.setItem('actor',value.user.email);setBaseUrl('/');setActor(value.user.email);setToken(value.token);setUser(value.user);setPage('overview');setAuthReady(true);setOnline(true)};
+ const authenticated=(value:{token:string;user:AuthUser})=>{authRequestSeq.current++;localStorage.setItem('apiUrl','/');localStorage.setItem('authToken',value.token);localStorage.setItem('actor',value.user.email);setBaseUrl('/');setActor(value.user.email);setToken(value.token);setUser(value.user);setPage('quickstart');setAuthReady(true);setOnline(true)};
  const logout=async()=>{try{await api.post('/api/auth/logout')}finally{localStorage.removeItem('authToken');setToken('');setUser(null)}};
  const saveSettings=async(u:string,k:string,a:string)=>{const nextUrl=u.trim()||'/';localStorage.setItem('apiUrl',nextUrl);localStorage.setItem('adminKey',k);localStorage.setItem('actor',a);setBaseUrl(nextUrl);setAdminKey(k);setActor(a);try{await new ApiClient(nextUrl,{adminKey:k,actor:a,token}).get('/api/system/status');setOnline(true);notify('已连接到 FastAPI 后端')}catch(e){setOnline(false);notify(`连接失败：${(e as Error).message}`,true)}};
  if(!authReady)return <div className="auth-loading"><span className="spinner"/>正在验证登录状态…</div>;
@@ -39,11 +40,11 @@ function App(){
  return <div className="shell">
   <aside><div className="brand"><span className="brandmark">A</span><div><b>AgentForge</b><small>智能体运行平台</small></div></div><nav>{nav.map(([id,label,icon])=><button className={page===id?'active':''} onClick={()=>setPage(id)} key={id}><i>{icon}</i>{label}</button>)}</nav><div className="side-foot"><div className={`health ${online?'ok':''}`}><span/> {online?'后端服务正常':'后端未连接'}</div><small>{short(baseUrl,28)}</small></div></aside>
   <main><header><div><h1>{nav.find(x=>x[0]===page)?.[1]}</h1><p>{subtitles[page]}</p></div><div className="header-actions"><button className="icon-btn" onClick={()=>location.reload()}>↻</button><div className="user-chip"><div className="avatar">{user.name.slice(0,1).toUpperCase()}</div><span><b>{user.name}</b><small>{user.email}</small></span></div><button className="logout-btn" onClick={logout}>退出</button></div></header>
-    <section className="content">{page==='overview'&&<Overview api={api} go={setPage}/>} {page==='apps'&&<AppCenter api={api} notify={notify} go={setPage}/>} {page==='agents'&&<VisualBuilder api={api} notify={notify}/>} {page==='workflows'&&<Workflows api={api} notify={notify}/>} {page==='runs'&&<RunConsole api={api} notify={notify}/>} {page==='skills'&&<Skills api={api} notify={notify} actor={actor}/>} {page==='tools'&&<ToolsPage api={api} notify={notify}/>} {page==='system'&&<System api={api} notify={notify}/>} {page==='settings'&&<Settings baseUrl={baseUrl} adminKey={adminKey} actor={actor} save={saveSettings}/>}</section>
+    <section className="content">{page==='quickstart'&&<QuickStart api={api} notify={notify} go={setPage}/>} {page==='app-square'&&<AppSquare api={api} notify={notify} go={setPage}/>} {page==='mcp-market'&&<McpMarketplace api={api} notify={notify} go={setPage}/>} {page==='tasks'&&<TaskCenter api={api} go={setPage}/>} {page==='skill-market'&&<SkillMarket api={api} notify={notify} go={setPage}/>} {page==='memories'&&<MemoryBanks api={api} notify={notify}/>} {page==='overview'&&<Overview api={api} go={setPage}/>} {page==='apps'&&<AppCenter api={api} notify={notify} go={setPage}/>} {page==='agents'&&<VisualBuilder api={api} notify={notify}/>} {page==='workflows'&&<Workflows api={api} notify={notify}/>} {page==='runs'&&<RunConsole api={api} notify={notify}/>} {page==='skills'&&<Skills api={api} notify={notify} actor={actor}/>} {page==='tools'&&<ToolsPage api={api} notify={notify}/>} {page==='system'&&<System api={api} notify={notify}/>} {page==='settings'&&<Settings baseUrl={baseUrl} adminKey={adminKey} actor={actor} save={saveSettings}/>}</section>
   </main>{toast&&<div className={`toast ${toast.bad?'bad':''}`}>{toast.bad?'!':'✓'} {toast.text}</div>}
  </div>
 }
-const subtitles:Record<Page,string>={overview:'掌握智能体资产与运行态势',apps:'创建、配置、调试和发布 Agent 应用',agents:'设计 Agent、层级关系与执行路径',workflows:'持久化、加载与管理编排版本',runs:'发起任务并追踪每个执行事件',skills:'从运行轨迹提炼、验证并发布技能',tools:'管理 MCP 服务、脚本工具和内置工具',system:'管理 API Key、模型连接与安全审计',settings:'配置后端地址和管理身份'};
+const subtitles:Record<Page,string>={quickstart:'从创建到会话调试的完整路径','app-square':'从可用模板快速构建智能体应用','mcp-market':'选择 MCP 模板并安装到本地工具目录',tasks:'查看异步任务、运行状态与结果','skill-market':'安装或管理可复用的 Agent 技能',memories:'管理应用可挂载的长期资料入口',overview:'掌握智能体资产与运行态势',apps:'创建、配置、调试和发布 Agent 应用',agents:'设计 Agent、层级关系与执行路径',workflows:'持久化、加载与管理编排版本',runs:'发起任务并追踪每个执行事件',skills:'从运行轨迹提炼、验证并发布技能',tools:'管理 MCP 服务、脚本工具和内置工具',system:'管理 API Key、模型连接与安全审计',settings:'配置后端地址和管理身份'};
 type Ctx={api:ApiClient;notify:(s:string,b?:boolean)=>void};
 function useLoad<T>(fn:()=>Promise<T>,deps:unknown[]=[]){const [data,setData]=useState<T|null>(null),[loading,setLoading]=useState(true),[error,setError]=useState('');const load=useCallback(()=>{setLoading(true);setError('');fn().then(setData).catch(e=>setError(e.message)).finally(()=>setLoading(false))},deps);useEffect(load,[load]);return{data,setData,loading,error,reload:load}}
 function Empty({loading,error,text='暂无数据'}:{loading?:boolean;error?:string;text?:string}){return <div className="empty">{loading?<><span className="spinner"/>正在读取后端数据…</>:error?<><b>连接失败</b><span>{error}</span></>:<><b>{text}</b><span>可使用右上角操作创建第一条记录</span></>}</div>}
