@@ -32,6 +32,7 @@ function App(){
  const notify=(text:string,bad=false)=>{setToast({text,bad});setTimeout(()=>setToast(null),3200)};
  const beginSidebarResize=(event:React.PointerEvent<HTMLDivElement>)=>{event.preventDefault();const startX=event.clientX,startWidth=sidebarWidth;let currentWidth=startWidth;const move=(e:PointerEvent)=>{currentWidth=Math.max(236,Math.min(420,startWidth+e.clientX-startX));setSidebarWidth(currentWidth)};const up=()=>{document.removeEventListener('pointermove',move);document.removeEventListener('pointerup',up);localStorage.setItem('sidebarWidth',String(currentWidth));};document.addEventListener('pointermove',move);document.addEventListener('pointerup',up)};
  useEffect(()=>{location.hash=page},[page]);
+ useEffect(()=>{const onHashChange=()=>{const next=location.hash.slice(1) as Page;if(nav.some(item=>item[0]===next))setPage(next)};window.addEventListener('hashchange',onHashChange);return()=>window.removeEventListener('hashchange',onHashChange)},[]);
  // Restore a persisted session only when the application first opens. A login
  // response is already authoritative; checking /me again during that state
  // update can let a stale request incorrectly clear the new session.
