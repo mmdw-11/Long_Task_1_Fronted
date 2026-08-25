@@ -1,0 +1,43 @@
+/* 应用管理页面样式，复刻百炼 Managed Agents 的创建向导与模板入口。 */
+.managed-apps{display:grid;gap:16px}
+.managed-hero{display:flex;align-items:center;justify-content:space-between;background:#fff;border:1px solid #e6e8ee;border-radius:8px;padding:28px 30px}
+.managed-hero span{display:inline-block;color:#615ced;font-size:13px;font-weight:700;margin-bottom:8px}
+.managed-hero h2{font-size:28px;line-height:1.35;margin:0 0 10px;color:#26244c}
+.managed-hero p{max-width:760px;margin:0;color:rgba(38,36,76,.58);font-size:14px}
+.managed-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.managed-steps>div{background:#fff;border:1px solid #e6e8ee;border-radius:8px;padding:14px 16px;display:grid;grid-template-columns:30px 1fr;column-gap:10px;align-items:center}
+.managed-steps b{grid-row:1/3;width:28px;height:28px;border-radius:999px;background:rgba(97,92,237,.08);color:#615ced;display:grid;place-items:center}
+.managed-steps span{font-weight:600;color:#26244c}
+.managed-steps small{color:rgba(38,36,76,.45)}
+.template-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.template-grid button{text-align:left;display:grid;gap:8px;min-height:138px;padding:18px;border-radius:8px;background:#fff}
+.template-grid i{width:36px;height:36px;border-radius:8px;background:rgba(97,92,237,.08);color:#615ced;display:grid;place-items:center;font-style:normal;font-weight:700}
+.template-grid b{font-size:15px;color:#26244c}
+.template-grid small{color:rgba(38,36,76,.55);line-height:1.6}
+.app-table{overflow:hidden}
+.app-card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(285px,1fr));gap:14px;padding:18px}
+.managed-card{border:1px solid #e6e8ee;border-radius:8px;background:#fff;padding:16px;display:grid;gap:12px}
+.managed-card>div{display:flex;justify-content:space-between;align-items:center}
+.managed-card span{font-size:11px;color:#615ced;background:rgba(97,92,237,.08);border-radius:999px;padding:4px 8px}
+.managed-card em{font-style:normal;font-size:11px;color:rgba(38,36,76,.45)}
+.managed-card h3{margin:0;font-size:16px;color:#26244c}
+.managed-card p{height:38px;overflow:hidden;margin:0;color:rgba(38,36,76,.55);font-size:12px;line-height:1.6}
+.managed-card dl{display:grid;grid-template-columns:70px 1fr;gap:7px;margin:0;font-size:12px}
+.managed-card dt{color:rgba(38,36,76,.45)}
+.managed-card dd{margin:0;color:#26244c}
+.managed-card footer{display:flex;gap:8px;border-top:1px solid #eef0f5;padding-top:12px}
+.create-app-form{display:grid;grid-template-columns:1fr 1fr;gap:22px;padding:22px}
+.create-app-form section{display:grid;gap:13px;align-content:start}
+.create-app-form h3{font-size:16px;margin:0;color:#26244c}
+.create-app-form p{font-size:12px;color:rgba(38,36,76,.55);margin:0;line-height:1.6}
+.create-app-form label{display:grid;gap:7px;color:rgba(38,36,76,.65);font-size:12px}
+.create-app-form>.form-actions{grid-column:1/-1}
+.choose-list{border:1px solid #e6e8ee;border-radius:8px;max-height:210px;overflow:auto}
+.choose-list label{grid-template-columns:auto 1fr!important;display:grid!important;gap:10px!important;padding:10px 12px;border-bottom:1px solid #eef0f5}
+.choose-list label:last-child{border-bottom:0}
+.choose-list input{width:auto}
+.choose-list span{display:grid;gap:2px}
+.choose-list b{font-size:12px;color:#26244c}
+.choose-list small{font-size:11px;color:rgba(38,36,76,.45);line-height:1.4}
+@media(max-width:1100px){.managed-steps,.template-grid,.create-app-form{grid-template-columns:1fr 1fr}}
+@media(max-width:760px){.managed-hero{align-items:flex-start;flex-direction:column}.managed-steps,.template-grid,.create-app-form{grid-template-columns:1fr}}
