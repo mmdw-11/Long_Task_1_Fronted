@@ -6,3 +6,17 @@
 .tool-bind-list b{font-size:12px}
 .tool-bind-list small{color:#7b8798;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .binding-note{font-size:11px!important;line-height:1.55!important;color:#8490a2!important;background:#f5f7fa;padding:8px 9px;border-radius:8px}
+.mcp-bind-list{display:flex;flex-direction:column;gap:8px;margin:8px 0}
+.mcp-bind-card{border:1px solid #e3e8f1;border-radius:8px;background:#fff;padding:10px;display:grid;gap:7px}
+.mcp-bind-card>div{display:grid;gap:2px}
+.mcp-bind-card b{font-size:12px}
+.mcp-bind-card small{font-size:10px;color:#7d8795}
+.mcp-bind-card label{display:flex;align-items:center;gap:7px;font-size:11px;color:#4e5a68}
+.mcp-bind-card footer{display:flex;gap:7px;border-top:1px solid #edf0f3;padding-top:8px}
+.mcp-modal{max-width:620px}
+.mcp-discovered{border:1px solid #e3e8f1;border-radius:8px;padding:10px;display:grid;gap:8px;max-height:240px;overflow:auto}
+.mcp-discovered>b{font-size:12px}
+.mcp-discovered label{display:flex;gap:9px;align-items:flex-start}
+.mcp-discovered span{display:grid;gap:2px}
+.mcp-discovered strong{font-size:12px}
+.mcp-discovered small{font-size:10px;color:#778393;line-height:1.45}
