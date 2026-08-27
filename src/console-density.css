@@ -1,0 +1,29 @@
+/* Keep the main console on the same 14px density scale as the agent editor. */
+:root{font-size:14px;--control-height:38px}
+body{font-size:14px}
+button{font-size:13px;padding:8px 13px;border-radius:8px}
+input,textarea,select{font-size:14px;padding:9px 11px;border-radius:8px}
+.brand{height:66px;padding:0 20px;gap:10px}
+.brandmark{width:32px;height:32px}
+.brand b{font-size:15px}
+.brand small{font-size:11px}
+.create-app-nav{height:42px;margin:11px 18px 7px;font-size:14px;padding:0 13px;justify-content:flex-start}
+.bailian-nav{padding:5px 18px 14px}
+.nav-group{padding:4px 0 12px}
+.nav-group+.nav-group{padding-top:7px}
+.nav-group small{margin:0 10px 7px;font-size:12px;line-height:20px}
+.bailian-nav button{display:grid;grid-template-columns:22px minmax(0,1fr) auto;height:40px;padding:0 11px;font-size:14px;gap:10px;text-align:left;justify-content:stretch}
+.bailian-nav button i{display:flex;align-items:center;justify-content:center;width:22px;height:22px;font-size:17px;line-height:1;font-style:normal}
+.bailian-nav button em,.bailian-nav button b{margin-left:0;justify-self:end}
+.bailian-nav button b{font-size:20px}
+.side-foot{padding:13px 18px;gap:5px}
+.health{font-size:11px}
+.side-foot small{font-size:10px}
+main>header{height:66px;padding:0 27px}
+main>header h1{font-size:19px}
+main>header p{font-size:12px}
+.content{padding:22px 28px 48px}
+.panel h2,.panel-head h2{font-size:16px}
+.panel-head p,.quick p{font-size:12px}
+.metric strong{font-size:22px}
+.metric,.panel{padding:17px}

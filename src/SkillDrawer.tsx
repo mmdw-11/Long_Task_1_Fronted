@@ -1,0 +1,29 @@
+import { useEffect, useMemo, useState } from 'react';
+import type { ApiClient } from './api';
+import type { Skill } from './types';
+import './skill-drawer.css';
+import './skill-local-loop.css';
+
+type MarketSkill = { slug:string; name:string; category:string; description:string; version?:string; source?:string; skill_id?:string; status?:string };
+
+export function SkillDrawer({api,skills,selected,close,reload,toggle,notify}:{
+  api:ApiClient; skills:Skill[]; selected:string[]; close:()=>void;
+  reload:()=>Promise<void>; toggle:(id:string)=>void; notify:(message:string,bad?:boolean)=>void;
+}) {
+  const [tab,setTab]=useState<'market'|'custom'>('market');
+  const [market,setMarket]=useState<MarketSkill[]>([]),[query,setQuery]=useState(''),[category,setCategory]=useState('全部');
+  const [mode,setMode]=useState<'git'|'zip'>('git'),[url,setUrl]=useState(''),[file,setFile]=useState<File|null>(null),[acceptedRisk,setAcceptedRisk]=useState(false),[busy,setBusy]=useState(''),[error,setError]=useState('');
+  useEffect(()=>{api.get<MarketSkill[]>('/api/marketplace/skills').then(setMarket).catch(e=>setError((e as Error).message))},[api]);
+  const installedBySlug=useMemo(()=>new Map(skills.filter(s=>(s.metadata as any)?.market_slug).map(s=>[String((s.metadata as any).market_slug),s])),[skills]);
+  const categories=['全部',...Array.from(new Set(market.map(x=>x.category)))];
+  const rows=market.filter(item=>(category==='全部'||item.category===category)&&`${item.name}${item.category}${item.description}`.toLowerCase().includes(query.toLowerCase()));
+  const install=async(item:MarketSkill)=>{setBusy(item.slug);setError('');try{const result=await api.post<any>(`/api/marketplace/skills/${item.slug}/install`);await reload();notify(result.message||'Skill 已导入')}catch(e){setError((e as Error).message)}finally{setBusy('')}};
+  const upload=async()=>{setBusy('upload');setError('');try{let imported:Skill;if(mode==='git'){imported=await api.post<Skill>('/api/skills/import/git',{url})}else{if(!file)throw new Error('请选择 ZIP 文件');imported=await api.postRaw<Skill>('/api/skills/import/zip',file,{'Content-Type':'application/zip'})}await reload();if(!selected.includes(imported.id))toggle(imported.id);notify('Skill 已通过安全校验、发布并添加到当前智能体')}catch(e){setError((e as Error).message)}finally{setBusy('')}};
+  return <div className="skill-drawer-layer" onMouseDown={e=>e.target===e.currentTarget&&close()}><aside className="skill-drawer">
+    <header><div><h2>选择 Skill 服务</h2><p>从平台市场添加，或导入你自己的标准 SKILL.md。</p></div><button aria-label="关闭" onClick={close}>×</button></header>
+    <div className="skill-drawer-toolbar"><label>⌕<input value={query} onChange={e=>setQuery(e.target.value)} placeholder="搜索 Skill"/></label><button onClick={()=>setTab('custom')}>⇧ 上传 Skill</button></div>
+    <div className="skill-drawer-tabs"><button className={tab==='market'?'active':''} onClick={()=>setTab('market')}>市场 <b>{market.length}</b></button><button className={tab==='custom'?'active':''} onClick={()=>setTab('custom')}>自定义</button></div>
+    {error&&<div className="skill-drawer-error">{error}</div>}
+    {tab==='market'?<><div className="skill-categories">{categories.map(item=><button className={category===item?'active':''} key={item} onClick={()=>setCategory(item)}>{item}</button>)}</div><div className="skill-market-list">{rows.map((item,index)=>{const installed=installedBySlug.get(item.slug),usable=installed?.status==='published',checked=Boolean(installed&&selected.includes(installed.id));return <article key={item.slug}><span className={`skill-market-icon c${index%4}`}>✦</span><div><div className="skill-market-title"><h3>{item.name}</h3><em>V {item.version||'1.0'}</em></div><p><b>{item.category}</b><span>{item.description}</span></p><small>平台内置 · 已安全发布</small></div>{usable?<button className={checked?'selected':''} onClick={()=>toggle(installed!.id)}>{checked?'已添加':'添加'}</button>:<button disabled={busy===item.slug} onClick={()=>install(item)}>{busy===item.slug?'恢复中…':'恢复内置项'}</button>}</article>})}{!rows.length&&<div className="skill-drawer-empty">没有匹配的 Skill</div>}</div></>:<div className="skill-custom-import"><div className="skill-import-modes"><button className={mode==='git'?'active':''} onClick={()=>setMode('git')}>Git 仓库</button><button className={mode==='zip'?'active':''} onClick={()=>setMode('zip')}>ZIP 上传</button></div>{mode==='git'?<label>HTTPS Git 仓库地址<input value={url} onChange={e=>setUrl(e.target.value)} placeholder="https://github.com/org/skill-repo.git"/><small>仓库根目录必须包含 SKILL.md。</small></label>:<label>Skill ZIP 包<input type="file" accept=".zip,application/zip" onChange={e=>setFile(e.target.files?.[0]||null)}/><small>只导入 Markdown、文本及 JSON/YAML 资料，不执行包内脚本。</small></label>}<label className="skill-risk-confirm"><input type="checkbox" checked={acceptedRisk} onChange={e=>setAcceptedRisk(e.target.checked)}/><span>我已确认该 Skill 的来源和内容可信，并自行承担使用外部 Skill 的风险。平台仍会阻止非法路径、超限文件和可执行内容。</span></label><button className="primary" disabled={!acceptedRisk||busy==='upload'||(mode==='git'?!url.trim():!file)} onClick={upload}>{busy==='upload'?'校验并导入中…':'校验、发布并添加'}</button><div className="skill-installed"><h3>可用 Skill</h3>{skills.map(skill=><label key={skill.id}><input type="checkbox" checked={selected.includes(skill.id)} onChange={()=>toggle(skill.id)}/><span><b>{skill.name}</b><small>{skill.visibility==='builtin'?'平台内置':'我的 Skill'} · V{skill.version}</small></span></label>)}</div></div>}
+  </aside></div>;
+}

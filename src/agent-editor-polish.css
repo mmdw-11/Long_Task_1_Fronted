@@ -1,0 +1,40 @@
+/* Final density pass: keep the editor readable without oversized headings or controls. */
+.agent-editor-shell{font-size:14px}
+.agent-editor-top{height:68px}
+.agent-editor-main{height:calc(100vh - 68px)}
+.editor-identity b{font-size:17px}
+.editor-identity small,.editor-identity em{font-size:12px}
+.editor-tabs>*{font-size:14px;padding:8px 17px}
+.editor-actions button{height:38px;padding:0 15px;font-size:14px}
+.agent-config-pane{padding:23px 30px 46px}
+.config-heading{align-items:center;margin-bottom:17px;gap:12px}
+.config-heading h1{font-size:21px;margin-bottom:5px}
+.config-heading p{font-size:12px}
+.config-heading select{min-height:38px;width:270px;font-size:13px;padding:8px 11px}
+.model-manage-button{min-height:38px;padding:0 12px;font-size:13px}
+.config-card{padding:18px 0}
+.config-card-title{margin-bottom:12px}
+.config-card-title h2{font-size:16px;margin-bottom:4px}
+.config-card-title p{font-size:12px;line-height:1.5}
+.config-card-actions button{font-size:12px;padding:6px 9px}
+.config-card>label{margin:9px 0;font-size:13px}
+.config-card input,.config-card textarea,.config-card select{font-size:14px}
+.prompt-editor{height:280px;padding:14px 15px;font-size:14px;line-height:1.65}
+.resource-list label{padding:11px 13px;gap:11px}
+.resource-list b{font-size:14px}
+.resource-list small{font-size:12px}
+.resource-empty{font-size:13px;padding:18px}
+.agent-debug-pane{padding:18px 20px 10px}
+.debug-head{padding-bottom:14px}
+.debug-head h2{font-size:18px;margin-bottom:5px}
+.debug-head p{font-size:12px}
+.debug-message.user>div,.assistant-content pre{font-size:14px}
+.debug-empty h3{font-size:17px}
+.debug-empty p{font-size:13px}
+.debug-composer textarea{font-size:14px;min-height:62px}
+.debug-composer button{width:40px;height:40px}
+.external-import-modal h2{font-size:18px}
+.external-import-modal p,.import-form label{font-size:13px}
+.external-import-modal>header{min-height:72px;padding:15px 20px}
+.import-form{gap:13px;padding:17px 20px 20px}
+@media(max-width:1366px){.agent-config-pane{padding:19px 23px 40px}.config-card{padding:16px 0}.prompt-editor{height:250px}.agent-debug-pane{padding:16px 16px 8px}}
