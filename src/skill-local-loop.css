@@ -1,0 +1,15 @@
+.skill-risk-confirm {
+  grid-template-columns: auto 1fr !important;
+  align-items: start;
+  padding: 12px;
+  border: 1px solid #eadcae;
+  border-radius: 8px;
+  background: #fffaf0;
+  color: #705c25;
+  line-height: 1.55;
+}
+
+.skill-risk-confirm input {
+  width: auto;
+  margin-top: 3px;
+}

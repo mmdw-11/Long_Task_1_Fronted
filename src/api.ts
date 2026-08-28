@@ -38,6 +38,7 @@ export class ApiClient {
   }
   get<T>(p:string){return this.request<T>(p)}
   post<T>(p:string,b:unknown={}){return this.request<T>(p,{method:'POST',body:JSON.stringify(b)})}
+  postRaw<T>(p:string,body:BodyInit,headers:Record<string,string>={}){return this.request<T>(p,{method:'POST',body,headers})}
   put<T>(p:string,b:unknown){return this.request<T>(p,{method:'PUT',body:JSON.stringify(b)})}
   delete<T>(p:string,b?:unknown){return this.request<T>(p,{method:'DELETE',body:b===undefined?undefined:JSON.stringify(b)})}
 }

@@ -1,0 +1,6 @@
+/* Normalize icon/text alignment across native and custom buttons. */
+button,.button,[role="button"]{align-items:center;justify-content:center}
+button,.button{display:inline-flex;gap:7px;line-height:1.2;text-align:center}
+button>svg,button>img,.button>svg,.button>img{display:block;flex:0 0 auto}
+.editor-back,.assistant-mark,.debug-composer button,.external-import-modal header button{display:inline-flex;align-items:center;justify-content:center;padding:0}
+.config-card-actions,.editor-actions,.import-tabs,.import-form footer{align-items:center}

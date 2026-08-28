@@ -6,4 +6,7 @@ import './tool-bind.css';
 import './auth.css';
 import './session.css';
 import './logic-flow.css';
+import './global-ux.css';
+import './control-alignment.css';
+import './console-density.css';
 createRoot(document.getElementById('root')!).render(<App/>);
