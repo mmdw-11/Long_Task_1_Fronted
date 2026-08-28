@@ -38,3 +38,4 @@
 .external-import-modal>header{min-height:72px;padding:15px 20px}
 .import-form{gap:13px;padding:17px 20px 20px}
 @media(max-width:1366px){.agent-config-pane{padding:19px 23px 40px}.config-card{padding:16px 0}.prompt-editor{height:250px}.agent-debug-pane{padding:16px 16px 8px}}
+.memory-bind-list .memory-primary{border:1px solid #d9d4ff;background:#fff;color:#665be5;border-radius:6px;padding:5px 8px}.memory-bind-list .memory-primary.active{background:#665be5;color:#fff}.memory-bind-list em{white-space:nowrap}
