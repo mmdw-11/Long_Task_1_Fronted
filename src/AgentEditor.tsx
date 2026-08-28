@@ -34,6 +34,7 @@ export function AgentEditor({ appId, api, notify, back }: Props) {
   const leave=()=>{if(dirty&&!confirm('当前配置尚未保存，确定离开吗？'))return;back()};
   const change=<K extends keyof Application>(key:K,value:Application[K])=>setDraft(current=>current?{...current,[key]:value}:current);
   const toggle=(key:'tool_ids'|'skill_ids'|'knowledge_base_ids'|'memory_bank_ids',id:string)=>{if(!draft)return;const values=draft[key];change(key,(values.includes(id)?values.filter(v=>v!==id):[...values,id]) as Application[typeof key])};
+  const changeTools=(ids:string[],add:boolean)=>setDraft(current=>{if(!current)return current;const wanted=new Set(ids),next=add?[...current.tool_ids,...ids.filter(id=>!current.tool_ids.includes(id))]:current.tool_ids.filter(id=>!wanted.has(id));return {...current,tool_ids:next}});
   const toggleMemory=(id:string)=>setDraft(current=>{if(!current)return current;const selected=current.memory_bank_ids.includes(id);const ids=selected?current.memory_bank_ids.filter(value=>value!==id):[...current.memory_bank_ids,id];const primary=selected&&current.primary_memory_bank_id===id?(ids[0]||null):(current.primary_memory_bank_id||id);return {...current,memory_bank_ids:ids,primary_memory_bank_id:primary}});
   const memoryChange=<K extends keyof MemoryConfig>(key:K,value:MemoryConfig[K])=>setDraft(current=>current?{...current,memory_config:{...current.memory_config,[key]:value}}:current);
   const save=async()=>{if(!draft||saving||!draft.name.trim())return;setSaving(true);try{const saved=normalize(await api.put<Application>(`/api/apps/${appId}`,persisted(draft)));setApp(saved);setDraft(saved);notify('应用配置已保存')}catch(e){notify((e as Error).message,true)}finally{setSaving(false)}};
@@ -67,7 +68,7 @@ export function AgentEditor({ appId, api, notify, back }: Props) {
     </main>
     {modelManage&&<ModelConnectionModal api={api} models={models} presets={modelPresets} close={()=>setModelManage(false)} done={reloadModels}/>} 
     {skillDrawer&&<SkillDrawer api={api} skills={skills} selected={draft.skill_ids} close={()=>setSkillDrawer(false)} reload={reloadResources} toggle={id=>toggle('skill_ids',id)} notify={notify}/>} 
-    {toolDrawer&&<ToolDrawer api={api} tools={tools} selected={draft.tool_ids} close={()=>setToolDrawer(false)} reload={reloadResources} toggle={id=>toggle('tool_ids',id)} notify={notify}/>}
+    {toolDrawer&&<ToolDrawer api={api} tools={tools} selected={draft.tool_ids} close={()=>setToolDrawer(false)} reload={reloadResources} toggle={id=>toggle('tool_ids',id)} changeMany={changeTools} notify={notify}/>}
   </div>;
 }
 

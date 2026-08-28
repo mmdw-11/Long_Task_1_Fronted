@@ -6,7 +6,7 @@ import './bailian-pages.css';
 
 type Notify = (text: string, bad?: boolean) => void;
 type Go = (page: any) => void;
-type MarketItem = { slug: string; name: string; provider?: string; category: string; description: string; installs?: number; cover?: string };
+type MarketItem = { slug: string; name: string; provider?: string; category: string; description: string; installs?: number; cover?: string; installed?:boolean; requires_configuration?:boolean; availability?:string; tool_count?:number };
 
 function useData<T>(api: ApiClient, path: string) {
   const [data, setData] = useState<T[]>([]);
@@ -19,11 +19,11 @@ function useData<T>(api: ApiClient, path: string) {
 export function McpMarketplace({ api, notify, go }: { api: ApiClient; notify: Notify; go: Go }) {
   const q = useData<MarketItem>(api, '/api/marketplace/mcp');
   const [query, setQuery] = useState('');
-  const install = async (slug: string) => { try { const result = await api.post<any>(`/api/marketplace/mcp/${slug}/install`); notify(result.message); go('tools'); } catch (e) { notify((e as Error).message, true); } };
+  const install = async (item:MarketItem) => { if(item.requires_configuration){notify('该条目需要实际 MCP 地址，请在智能体的“添加工具 → 自定义”中接入');go('apps');return}try { const result = await api.post<any>(`/api/marketplace/mcp/${item.slug}/install`); notify(result.message); q.load(); } catch (e) { notify((e as Error).message, true); } };
   const items = q.data.filter(x => `${x.name}${x.category}${x.description}`.toLowerCase().includes(query.toLowerCase()));
   return <ConsolePage title="MCP 广场" action={<button className="icon-round" onClick={q.load}>↻</button>}>
     <div className="market-filter"><button className="selected">精选</button><button>最新</button><button>分类</button><span className="filter-divider"/><label className="market-search">⌕<input placeholder="请输入，支持模糊搜索" value={query} onChange={e => setQuery(e.target.value)} /></label></div>
-    <div className="mcp-grid">{items.map((item, index) => <article className="mcp-card" key={item.slug}><div className={`mcp-cover ${item.cover || 'blue'}`}><b>{['◒', '◐', 'G', '⌁', '▣', 'AI'][index % 6]}</b><span> | One Key</span></div><div className="mcp-body"><h3>{item.name}</h3><p>{item.description}</p><footer><span>提供方：{item.provider || '示例市场'}</span><span>⌁ {item.installs || 0}</span></footer><button className="install-btn" onClick={() => install(item.slug)}>安装到 MCP 管理</button></div></article>)}</div>
+    <div className="mcp-grid">{items.map((item, index) => <article className="mcp-card" key={item.slug}><div className={`mcp-cover ${item.cover || 'blue'}`}><b>{['◒', '◐', 'G', '⌁', '▣', 'AI'][index % 6]}</b><span> | 精选目录</span></div><div className="mcp-body"><h3>{item.name}</h3><p>{item.description}</p><footer><span>提供方：{item.provider || '项目精选目录'}</span><span>{item.requires_configuration?'需要配置':`${item.tool_count||0} 个工具`}</span></footer><button disabled={item.installed} className="install-btn" onClick={() => install(item)}>{item.installed?'已安装':item.requires_configuration?'前往自定义接入':'安装到工作区'}</button></div></article>)}</div>
     {!q.loading && !items.length && <Empty title="未找到匹配的 MCP" />}
   </ConsolePage>;
 }
