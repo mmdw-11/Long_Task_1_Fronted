@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { ApiClient } from './api';
 import type { ModelConnection } from './types';
 
-type Preset = { provider: string; name: string };
+type Preset = { provider: string; name: string; base_url?:string };
 
 export function ModelConnectionModal({ api, models, presets, close, done }: {
   api: ApiClient;
@@ -17,6 +17,7 @@ export function ModelConnectionModal({ api, models, presets, close, done }: {
   });
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
+  const [testResult,setTestResult]=useState('');
   const set = (key: string, value: string | boolean) => setForm(old => ({ ...old, [key]: value }));
   const create = async () => {
     setBusy('create'); setError('');
@@ -28,7 +29,7 @@ export function ModelConnectionModal({ api, models, presets, close, done }: {
   };
   const test = async (id: string) => {
     setBusy(id); setError('');
-    try { await api.post(`/api/model-connections/${id}/test`); await done(); }
+    try { const value=await api.post<any>(`/api/model-connections/${id}/test`);setTestResult(`${value.test_result?.model||'模型'} 真实推理成功 · ${value.test_result?.latency_ms||0} ms · ${value.test_result?.response||''}`); await done(); }
     catch (e) { setError((e as Error).message); } finally { setBusy(''); }
   };
   return <div className="overlay"><div className="external-import-modal model-connection-modal">
@@ -39,13 +40,15 @@ export function ModelConnectionModal({ api, models, presets, close, done }: {
       <button disabled={busy === model.id} onClick={() => test(model.id)}>{busy === model.id ? '测试中…' : '连接测试'}</button>
     </div>)}</div>
     <div className="import-form model-connection-form">
+      <div className="model-connect-help">密钥请先写入后端 <code>.env</code> 并重启服务。DeepSeek：<code>deepseek-chat / https://api.deepseek.com/v1 / DEEPSEEK_API_KEY</code>；千问：<code>qwen-plus / DashScope 兼容地址 / DASHSCOPE_API_KEY</code>；Ollama 使用 <code>http://127.0.0.1:11434/v1</code> 且密钥变量留空。</div>
       <label>连接名称<input value={form.name} onChange={e => set('name', e.target.value)} placeholder="例如：生产 DeepSeek" /></label>
-      <label>提供商<select value={form.provider} onChange={e => set('provider', e.target.value)}>{presets.map(p => <option key={p.provider} value={p.provider}>{p.name}</option>)}</select></label>
+      <label>提供商<select value={form.provider} onChange={e => {const preset=presets.find(p=>p.provider===e.target.value);setForm(old=>({...old,provider:e.target.value,base_url:preset?.base_url||old.base_url,name:old.name||preset?.name||''}))}}>{presets.map(p => <option key={p.provider} value={p.provider}>{p.name}</option>)}</select></label>
       <label>模型 ID<input value={form.model_id} onChange={e => set('model_id', e.target.value)} placeholder="以服务商实际 model_id 为准" /></label>
       <label>OpenAI 兼容 Base URL<input value={form.base_url} onChange={e => set('base_url', e.target.value)} placeholder="https://api.example.com/v1" /></label>
       <label>API Key 环境变量<input value={form.api_key_env} onChange={e => set('api_key_env', e.target.value)} placeholder="例如 DEEPSEEK_API_KEY" /><small>平台仅保存变量名，接口不会回显密钥。</small></label>
       <label>资源层级<select value={form.tier} onChange={e => set('tier', e.target.value)}><option value="device">端</option><option value="edge">边</option><option value="cloud">云</option></select></label>
       {error && <div className="import-error">{error}</div>}
+      {testResult&&<div className="model-test-result">✓ {testResult}</div>}
       <footer><button onClick={close}>关闭</button><button className="primary" disabled={busy === 'create' || !form.name.trim() || !form.model_id.trim() || !form.base_url.trim()} onClick={create}>{busy === 'create' ? '创建中…' : '创建连接'}</button></footer>
     </div>
   </div></div>;
