@@ -9,7 +9,7 @@ export function ToolDrawer({api,tools,selected,close,reload,toggle,changeMany,no
   const [tab,setTab]=useState<Tab>('market'),[source,setSource]=useState<'all'|'builtin'|'mcp'>('all'),[query,setQuery]=useState('');
   const [connections,setConnections]=useState<ToolConnection[]>([]),[market,setMarket]=useState<McpMarketItem[]>([]),[expanded,setExpanded]=useState<string[]>([]);
   const [mode,setMode]=useState<'mcp'|'openapi'>('mcp'),[url,setUrl]=useState(''),[name,setName]=useState(''),[credential,setCredential]=useState(''),[busy,setBusy]=useState(''),[error,setError]=useState('');
-  const load=async()=>{const [a,b]=await Promise.all([api.get<ToolConnection[]>('/api/tool-connections'),api.get<McpMarketItem[]>('/api/marketplace/mcp')]);setConnections(a);setMarket(b)};
+  const load=async()=>{const [connectionsResult,marketResult]=await Promise.allSettled([api.get<ToolConnection[]>('/api/tool-connections'),api.get<McpMarketItem[]>('/api/marketplace/mcp')]);if(connectionsResult.status==='fulfilled')setConnections(connectionsResult.value);else setError(`已安装连接读取失败：${connectionsResult.reason?.message||'接口不可用'}`);if(marketResult.status==='fulfilled')setMarket(marketResult.value);else throw marketResult.reason};
   useEffect(()=>{load().catch(e=>setError(e.message))},[]);
   const builtins=useMemo(()=>tools.filter(t=>toolSource(t)==='builtin'&&matches(t,query)),[tools,query]);
   const marketRows=useMemo(()=>market.filter(x=>(source==='all'||source==='mcp')&&`${x.name}${x.provider}${x.category}${x.description}`.toLowerCase().includes(query.toLowerCase())),[market,source,query]);
