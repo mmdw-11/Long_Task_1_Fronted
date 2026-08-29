@@ -1,0 +1,10 @@
+.create-error {
+  margin: -12px 0 0;
+  color: #c83f49;
+  font-size: 13px;
+}
+
+.create-agent-modal input[aria-invalid="true"] {
+  border-color: #dc5962;
+  box-shadow: 0 0 0 3px #dc596218;
+}
