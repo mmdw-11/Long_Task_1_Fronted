@@ -33,6 +33,22 @@ function EventBlock({event:e,api,notify,runId,reload}:{event:any;api:ApiClient;n
  if(e.type==='approval_required')return <ApprovalEvent event={e} api={api} notify={notify} runId={runId} reload={reload}/>;
  if(e.type==='approval_decision')return <div className={`event approval-event ${e.approved?'approved':'rejected'}`}><span>{e.approved?'✓':'×'}</span><div><b>{e.approved?'已批准':'已拒绝'}：{e.tool_call?.display_name||e.tool_call?.name||'工具'}</b><p>{e.reason||e.message}</p><small>{fmt(e.timestamp)}</small></div></div>;
  if(e.type==='route')return <div className="event route-event"><span>↳</span><p>{e.message||`下一步：${(e.targets||[]).join('、')||'结束'}`}</p></div>;
+ if(e.type==='capsule_created')return <div className="event system-event"><span>◇</span><div><b>结构化消息已生成</b><p>{e.capsule?.sender||'Agent'}：{e.capsule?.claim||'状态/约束增量'}</p></div></div>;
+ if(e.type==='capsule_delivered')return <div className="event route-event"><span>⇢</span><div><b>低熵消息 → {e.recipient}</b><p>{e.capsule?.claim||JSON.stringify(e.capsule?.constraint_delta||{})}</p><small>贡献度 {Number(e.decision?.score||0).toFixed(3)}</small></div></div>;
+ if(e.type==='capsule_pruned')return <div className="event system-event"><span>×</span><div><b>冗余消息已裁剪</b><p>{(e.decision?.reasons||[]).join('、')}</p></div></div>;
+ if(e.type==='capsule_compressed')return <div className="event system-event"><span>⇣</span><p>消息压缩 {e.original_tokens} → {e.compressed_tokens} tokens</p></div>;
+ if(e.type==='state_delta')return <div className="event system-event"><span>Δ</span><p>状态差分 r{e.delta?.base_revision} → r{e.delta?.revision}</p></div>;
+ if(e.type==='temporal_facts_updated')return <div className="event system-event"><span>◷</span><p>时态证据记忆更新 {e.facts?.length||0} 条事实</p></div>;
+ if(e.type==='plan_verified')return <div className="event system-event"><span>⊨</span><div><b>符号计划验证通过</b><p>revision {e.outcome?.plan?.revision||0} · {e.outcome?.validation?.backend||'deterministic'} · {e.outcome?.plan?.subtasks?.length||0} 个子任务</p></div></div>;
+ if(e.type==='plan_rejected')return <div className="event approval-event rejected"><span>⊥</span><div><b>计划约束不可满足</b><p>{(e.outcome?.validation?.violations||[]).map((v:any)=>v.message).join('；')}</p></div></div>;
+ if(e.type==='symbolic_counterexample')return <div className="event system-event"><span>CE</span><div><b>反例已反馈给 Planner</b><p>{e.capsule?.claim}：{JSON.stringify(e.capsule?.constraint_delta||{})}</p></div></div>;
+ if(e.type==='failure_detected')return <div className="event approval-event rejected"><span>!</span><div><b>检测到 {e.failure?.kind||'未知'} 故障</b><p>{e.failure?.node} · {e.failure?.message}</p><small>attempt {e.failure?.attempt||1} · {e.failure?.side_effect_class||'idempotent'}</small></div></div>;
+ if(e.type==='recovery_planned')return <div className="event system-event"><span>↻</span><div><b>恢复策略：{e.episode?.action?.action}</b><p>{e.episode?.action?.reason}</p><small>{(e.episode?.action?.targets||[]).join('、')}</small></div></div>;
+ if(e.type==='fallback_selected')return <div className="event route-event"><span>⇄</span><div><b>已选择 {e.fallback_type} fallback</b><p>{JSON.stringify(e.binding||e.metadata||e.targets||{})}</p></div></div>;
+ if(e.type==='degrade_entered')return <div className="event system-event"><span>▽</span><div><b>进入显式降级模式</b><p>{JSON.stringify(e.contract||{})}</p></div></div>;
+ if(e.type==='takeover_assigned')return <div className="event route-event"><span>⇢</span><p>{e.source} 已由 {(e.targets||[]).join('、')} 接管</p></div>;
+ if(e.type==='plan_revised')return <div className="event system-event"><span>Δ</span><div><b>触发局部重规划</b><p>{e.reason} · checkpoint {e.checkpoint_id||'latest'}</p></div></div>;
+ if(e.type==='recovery_succeeded'||e.type==='recovery_failed')return <div className={`event ${e.type==='recovery_succeeded'?'system-event':'approval-event rejected'}`}><span>{e.type==='recovery_succeeded'?'✓':'×'}</span><p>{e.type==='recovery_succeeded'?'恢复成功':'恢复失败'}：{e.reason||e.episode?.action?.reason||e.episode_id}</p></div>;
  if(e.type==='final')return <div className="event final-event"><span>✓</span><p>所有工作流节点执行完成，正在整理最终总结。</p></div>;
  return <div className="event system-event"><span>·</span><p>{e.message||e.type}</p></div>
 }
