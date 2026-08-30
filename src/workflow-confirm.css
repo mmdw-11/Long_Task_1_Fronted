@@ -1,0 +1,8 @@
+.workflow-confirm-layer{position:fixed;z-index:60;inset:0;background:#24263a55;display:grid;place-items:center;padding:24px}
+.workflow-confirm-dialog{width:min(440px,calc(100vw - 40px));display:grid;grid-template-columns:auto 1fr;gap:15px;background:#fff;border-radius:13px;padding:24px;box-shadow:0 24px 70px #20223845}
+.workflow-confirm-icon{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:#fff0f1;color:#c53f4b;font-size:22px;font-weight:800}
+.workflow-confirm-dialog h2{margin:0 0 8px;font-size:20px}
+.workflow-confirm-dialog p{margin:0;color:#71778b;line-height:1.65}
+.workflow-confirm-dialog footer{grid-column:1/-1;display:flex;justify-content:flex-end;gap:9px;padding-top:8px}
+.workflow-confirm-dialog footer button{min-width:88px;height:39px}
+.workflow-confirm-dialog footer .danger{background:#c94350;color:#fff;border-color:#c94350}

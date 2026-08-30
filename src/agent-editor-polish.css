@@ -24,6 +24,7 @@
 .resource-list b{font-size:14px}
 .resource-list small{font-size:12px}
 .resource-empty{font-size:13px;padding:18px}
+.skill-config-section{border-top:1px solid #eceef4;padding:22px 0}.skill-config-section>.resource-list{margin-top:15px}
 .agent-debug-pane{padding:18px 20px 10px}
 .debug-head{padding-bottom:14px}
 .debug-head h2{font-size:18px;margin-bottom:5px}
