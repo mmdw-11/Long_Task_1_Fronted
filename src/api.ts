@@ -18,7 +18,9 @@ export class ApiClient {
     return [primary];
   }
   private async request<T>(path:string, init:RequestInit={}):Promise<T>{
-    const headers:Record<string,string>={'Content-Type':'application/json',...(init.headers as Record<string,string>||{})};
+    const headers:Record<string,string>={...(init.headers as Record<string,string>||{})};
+    // Browser must supply multipart boundary itself for FormData uploads.
+    if(!(init.body instanceof FormData) && !headers['Content-Type']) headers['Content-Type']='application/json';
     if(this.credentials.adminKey) headers['X-Admin-Key']=this.credentials.adminKey;
     // HTTP header values must be Latin-1. A Chinese display name used as the
     // actor previously made fetch throw before any request left the browser.
@@ -27,13 +29,23 @@ export class ApiClient {
     if(this.credentials.actor && /^[\x20-\x7e]+$/.test(this.credentials.actor)) headers['X-Actor']=this.credentials.actor;
     if(this.credentials.token) headers.Authorization=`Bearer ${this.credentials.token}`;
     let response:Response|undefined,lastNetworkError=false;
-    for(const url of this.urls(path)){
-      try{response=await fetch(url,{...init,headers,credentials:'include'});lastNetworkError=false;break}catch{lastNetworkError=true}
+    const candidates=this.urls(path);
+    for(let index=0;index<candidates.length;index++){
+      const url=candidates[index];
+      try{
+        response=await fetch(url,{...init,headers,credentials:'include'});lastNetworkError=false;
+        // A stale custom localhost URL can still answer normal platform
+        // requests but not contain the newly added knowledge-base routes.
+        // In development, try the local FastAPI server once before reporting
+        // a 404. Resource-specific 404s still remain 404s on the fallback.
+        if(response.status===404 && path.startsWith('/api/knowledge') && index<candidates.length-1) continue;
+        break;
+      }catch{lastNetworkError=true}
     }
     if(!response)throw new ApiError(lastNetworkError?'无法连接后端，请检查服务地址与 FastAPI 服务状态':'请求未发送',0);
     const raw=await response.text(); let data:unknown={};
     try{data=raw?JSON.parse(raw):{}}catch{data={detail:raw}}
-    if(!response.ok){const d=data as {detail?:unknown};throw new ApiError(typeof d.detail==='string'?d.detail:`请求失败 (${response.status})`,response.status)}
+    if(!response.ok){const d=data as {detail?:unknown};const detail=typeof d.detail==='string'?d.detail:`请求失败 (${response.status})`;const message=response.status===404&&detail==='Not Found'?`接口未找到：${init.method||'GET'} ${path}。请确认后端已重启并在“连接设置”中使用 / 或 http://127.0.0.1:8000。`:detail;throw new ApiError(message,response.status)}
     return data as T;
   }
   get<T>(p:string){return this.request<T>(p)}
