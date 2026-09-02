@@ -1,0 +1,122 @@
+.tool-mount-list {
+  height: 300px;
+  min-height: 300px;
+  max-height: 300px;
+  border: 1px solid #e5e7ef;
+  border-radius: 9px;
+  background: #fff;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.tool-mount-list.empty {
+  display: grid;
+  place-items: center;
+  color: #999eaf;
+  text-align: center;
+  font-size: 13px;
+}
+
+.tool-mount-group {
+  border-bottom: 1px solid #eef0f5;
+}
+
+.tool-mount-group:last-child {
+  border-bottom: 0;
+}
+
+.tool-mount-group > header {
+  min-height: 56px;
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: #fff;
+}
+
+.tool-mount-expand {
+  width: 26px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #5d6379;
+  font-size: 20px;
+}
+
+.tool-mount-group header span {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.tool-mount-group header b,
+.tool-mount-tools b {
+  min-width: 0;
+  color: #272b49;
+  font-size: 14px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tool-mount-group header small,
+.tool-mount-tools small {
+  color: #9297aa;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.tool-mount-group input[type="checkbox"],
+.tool-mount-tools input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #6758eb;
+}
+
+.tool-mount-tools {
+  display: grid;
+  background: #fafbfe;
+  border-top: 1px solid #eef0f5;
+}
+
+.tool-mount-tools label {
+  min-height: 58px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 14px 10px 42px;
+  border-bottom: 1px solid #eef0f5;
+  cursor: pointer;
+}
+
+.tool-mount-tools label:last-child {
+  border-bottom: 0;
+}
+
+.tool-mount-tools label:hover {
+  background: #f5f5ff;
+}
+
+.tool-mount-tools label.disabled {
+  opacity: .48;
+  cursor: not-allowed;
+}
+
+.tool-mount-tools label > span {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.tool-mount-tools em {
+  font-size: 11px;
+  font-style: normal;
+  color: #665ce9;
+  background: #f0efff;
+  padding: 3px 7px;
+  border-radius: 5px;
+}
