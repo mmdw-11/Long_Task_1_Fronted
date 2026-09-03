@@ -55,6 +55,45 @@
   overflow-y: auto;
 }
 
+.tool-section {
+  display: grid;
+  gap: 9px;
+  padding: 12px;
+  border: 1px solid #e2e5ef;
+  border-radius: 12px;
+  background: #fafbfe;
+}
+
+.tool-section > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 2px 3px 5px;
+}
+
+.tool-section > header > div {
+  display: grid;
+  gap: 4px;
+}
+
+.tool-section > header b {
+  color: #252a48;
+  font-size: 15px;
+}
+
+.tool-section > header small {
+  color: #858ba0;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.tool-section > header button {
+  min-width: 76px;
+  min-height: 34px;
+  white-space: nowrap;
+}
+
 .tool-market-row {
   min-height: 94px;
   display: grid;
