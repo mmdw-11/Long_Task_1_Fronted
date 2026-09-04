@@ -1,3 +1,4 @@
+import { appConfirm } from "./dialogs";
 // 工具管理页面，提供内置工具、MCP URL 和手写脚本三种接入控件。
 import { useEffect, useMemo, useState } from 'react';
 import type { ApiClient } from './api';
@@ -222,7 +223,7 @@ function useTools(api: ApiClient, notify: Props['notify']) {
   };
   useEffect(() => { reload(); }, [api]);
   const remove = async (id: string) => {
-    if (!confirm('确认删除该工具？')) return;
+    if (!(await appConfirm('确认删除该工具？'))) return;
     try {
       await api.delete(`/api/tools/${id}`);
       notify('工具已删除');
