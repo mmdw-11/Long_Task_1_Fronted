@@ -4,5 +4,9 @@
 .workflow-confirm-dialog h2{margin:0 0 8px;font-size:20px}
 .workflow-confirm-dialog p{margin:0;color:#71778b;line-height:1.65}
 .workflow-confirm-dialog footer{grid-column:1/-1;display:flex;justify-content:flex-end;gap:9px;padding-top:8px}
-.workflow-confirm-dialog footer button{min-width:88px;height:39px}
-.workflow-confirm-dialog footer .danger{background:#c94350;color:#fff;border-color:#c94350}
+.workflow-confirm-dialog footer button{min-width:104px;height:42px;display:inline-flex;align-items:center;justify-content:center;font-weight:600}
+.workflow-confirm-dialog footer .danger{min-width:124px;background:#d9363e;color:#fff;border:1px solid #d9363e;font-weight:700;box-shadow:0 4px 12px #d9363e35;opacity:1}
+.workflow-confirm-dialog footer .danger:hover{background:#bd252d;border-color:#bd252d}
+.workflow-confirm-dialog footer .danger:focus-visible{outline:3px solid #f5a3a7;outline-offset:2px}
+.workflow-confirm-layer .workflow-confirm-dialog footer button.workflow-delete-confirm{background:#d9363e!important;border-color:#d9363e!important;color:#fff!important;-webkit-text-fill-color:#fff!important;opacity:1!important;text-shadow:none!important}
+.workflow-confirm-layer .workflow-confirm-dialog footer button.workflow-delete-confirm:hover{background:#bd252d!important;border-color:#bd252d!important;color:#fff!important;-webkit-text-fill-color:#fff!important}
