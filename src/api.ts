@@ -4,10 +4,13 @@ export class ApiClient {
   constructor(public baseUrl:string, private credentials:Credentials){ }
   setCredentials(v:Credentials){this.credentials=v}
   getAuthToken(){return this.credentials.token||''}
-  private urls(path:string):string[]{
+  private urls(path:string,method='GET'):string[]{
     const base=this.baseUrl.trim();
     const normalized=base==='/'?'':base.replace(/\/$/,'');
     const primary=`${normalized}${path}`;
+    // Never replay a mutation or move Run reads to a different backend than
+    // the SSE subscription. A network error is not proof a write failed.
+    if(method!=='GET'||/^\/api\/(runs|apps|system\/runtime)(\/|$)/.test(path))return [primary];
     // Vite's proxy is the first choice during local development. Some local
     // browser/proxy combinations can abort a proxied request even though the
     // FastAPI process is healthy, so retry once against FastAPI directly.
@@ -29,7 +32,7 @@ export class ApiClient {
     if(this.credentials.actor && /^[\x20-\x7e]+$/.test(this.credentials.actor)) headers['X-Actor']=this.credentials.actor;
     if(this.credentials.token) headers.Authorization=`Bearer ${this.credentials.token}`;
     let response:Response|undefined,lastNetworkError=false;
-    const candidates=this.urls(path);
+    const candidates=this.urls(path,init.method||'GET');
     for(let index=0;index<candidates.length;index++){
       const url=candidates[index];
       try{

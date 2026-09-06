@@ -3,7 +3,8 @@ $ErrorActionPreference = "Stop"
 $frontendRoot = Split-Path -Parent $PSScriptRoot
 $backendRoot = Join-Path (Split-Path -Parent $frontendRoot) "long_task_1"
 $preferredPython = "D:\SoftWare\Anaconda\envs\Lang_Task\python.exe"
-$python = if (Test-Path -LiteralPath $preferredPython) { $preferredPython } else { "python" }
+$venvPython = Join-Path $backendRoot ".venv\Scripts\python.exe"
+$python = if (Test-Path -LiteralPath $venvPython) { $venvPython } elseif (Test-Path -LiteralPath $preferredPython) { $preferredPython } else { "python" }
 
 function Test-BackendReady {
     try {
@@ -45,6 +46,10 @@ if (-not $backendReady) {
     }
 }
 
-Write-Host "FastAPI backend ready: http://127.0.0.1:8000" -ForegroundColor Green
+$schema = Invoke-RestMethod -Uri "http://127.0.0.1:8000/openapi.json" -TimeoutSec 5
+if ([int]$schema.info.'x-run-stream-protocol' -lt 2) {
+    throw "Port 8000 is occupied by an older backend without streaming approval support. Stop that backend and restart from $backendRoot. No process was terminated automatically."
+}
+Write-Host "FastAPI backend ready (stream protocol 2): http://127.0.0.1:8000" -ForegroundColor Green
 Set-Location -LiteralPath $frontendRoot
 npm run dev:web

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { ApiClient } from './api';
 import type { ConnectionSchema, McpMarketItem, Tool, ToolConnection } from './types';
+import { toolKind } from './tool-kind';
 import './skill-drawer.css';
 import './tool-drawer.css';
 
@@ -40,5 +41,4 @@ function ToolRow({tool,checked,toggle}:{tool:Tool;checked:boolean;toggle:()=>voi
 function ServiceCard({name,type,status,tools,selected,expanded,open,toggle,changeAll,sync,authorize,syncing}:{name:string;type:string;status?:string;tools:Tool[];selected:string[];expanded:boolean;open:()=>void;toggle:(id:string)=>void;changeAll:(tools:Tool[],add:boolean)=>void;sync?:()=>void;authorize?:()=>void;syncing?:boolean}){const usable=tools.filter(t=>t.enabled),count=usable.filter(t=>selected.includes(t.id)).length,all=usable.length>0&&count===usable.length;const state=status==='authorization_required'?'等待登录':status==='configuration_required'?'待配置':`${tools.length} 个工具`;return <article className="tool-service-card installed"><div className="tool-service-head"><button className="tool-expand" onClick={open}>{expanded?'⌄':'›'}</button><span className="tool-service-icon">⌁</span><div><h3>{name}</h3><small>{type} · {state} · 已添加 {count}/{usable.length}</small></div>{status==='authorization_required'&&authorize?<button onClick={authorize} disabled={syncing}>{syncing?'处理中…':'登录授权'}</button>:<button disabled={!usable.length} onClick={()=>changeAll(usable,!all)}>{all?'移除全部':'添加全部'}</button>}</div>{expanded&&<div className="tool-service-tools">{status==='authorization_required'&&sync&&<button className="tool-sync" onClick={sync} disabled={syncing}>授权完成后同步工具</button>}{tools.map(t=><ToolRow key={t.id} tool={t} checked={selected.includes(t.id)} toggle={()=>toggle(t.id)}/>)}{!tools.length&&<div className="skill-drawer-empty">{status==='authorization_required'?'请先点击“登录授权”，完成浏览器登录后工具会自动同步；未自动刷新时可点击“授权完成后同步工具”。':'该服务尚未发现工具，请先完成配置或同步'}</div>}</div>}</article>}
 function flip(id:string,values:string[],set:(next:string[])=>void){set(values.includes(id)?values.filter(x=>x!==id):[...values,id])}
 function matches(t:Tool,q:string){return `${t.display_name}${t.name}${t.description}`.toLowerCase().includes(q.toLowerCase())}
-function toolGroup(t:Tool){return String((t.metadata as any)?.adapter||'').startsWith('workspace_')?'code':toolSource(t)}
-function toolSource(t:Tool){const s=String((t.metadata as any)?.source||'');if(s==='mcp'||t.category==='mcp')return'mcp';if(s==='openapi'||t.category==='openapi')return'openapi';return'builtin'}
+function toolGroup(t:Tool){return toolKind(t)}
