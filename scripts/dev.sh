@@ -36,6 +36,10 @@ if ! test_backend_ready; then
   done
 fi
 
-echo "✅ FastAPI backend ready: http://127.0.0.1:8000"
+if ! curl -fsS --max-time 5 http://127.0.0.1:8000/openapi.json | "$PYTHON" -c 'import json,sys; sys.exit(0 if json.load(sys.stdin).get("info",{}).get("x-run-stream-protocol",0)>=2 else 1)'; then
+  echo "Port 8000 is serving an older backend. Restart it from $BACKEND_ROOT; no process was terminated automatically." >&2
+  exit 1
+fi
+echo "✅ FastAPI backend ready (stream protocol 2): http://127.0.0.1:8000"
 cd "$FRONTEND_ROOT"
 npm run dev:web
