@@ -51,9 +51,9 @@ export class ApiClient {
     if(!response.ok){const d=data as {detail?:unknown};const detail=typeof d.detail==='string'?d.detail:`请求失败 (${response.status})`;const message=response.status===404&&detail==='Not Found'?`接口未找到：${init.method||'GET'} ${path}。请确认后端已重启并在“连接设置”中使用 / 或 http://127.0.0.1:8000。`:detail;throw new ApiError(message,response.status)}
     return data as T;
   }
-  get<T>(p:string){return this.request<T>(p)}
-  post<T>(p:string,b:unknown={}){return this.request<T>(p,{method:'POST',body:JSON.stringify(b)})}
+  get<T=any>(p:string){return this.request<T>(p)}
+  post<T=any>(p:string,b:unknown={}){return this.request<T>(p,{method:'POST',body:JSON.stringify(b)})}
   postRaw<T>(p:string,body:BodyInit,headers:Record<string,string>={}){return this.request<T>(p,{method:'POST',body,headers})}
-  put<T>(p:string,b:unknown){return this.request<T>(p,{method:'PUT',body:JSON.stringify(b)})}
-  delete<T>(p:string,b?:unknown){return this.request<T>(p,{method:'DELETE',body:b===undefined?undefined:JSON.stringify(b)})}
+  put<T=any>(p:string,b:unknown){return this.request<T>(p,{method:'PUT',body:JSON.stringify(b)})}
+  delete<T=any>(p:string,b?:unknown){return this.request<T>(p,{method:'DELETE',body:b===undefined?undefined:JSON.stringify(b)})}
 }
