@@ -52,11 +52,41 @@ export function AppSquare({ api, notify, go }: { api: ApiClient; notify: Notify;
 export function TaskCenter({ api, go }: { api: ApiClient; go: Go }) {
   const q = useData<Run>(api, '/api/runs');
   const [query, setQuery] = useState('');
-  const rows = q.data.filter(item => item.id.includes(query) || JSON.stringify(item.input).includes(query));
-  return <ConsolePage title="任务中心" action={<button className="icon-round" onClick={q.load}>↻</button>}>
-    <div className="task-toolbar"><label className="market-search">⌕<input value={query} onChange={e => setQuery(e.target.value)} placeholder="搜索 Task ID" /></label><button>⚱ 过滤器</button><button onClick={() => { setQuery(''); q.load(); }}>重置</button></div>
-    {rows.length ? <table className="task-table"><thead><tr><th>Task ID</th><th>状态</th><th>输入</th><th>输出</th><th>来源</th><th>创建时间</th><th>操作</th></tr></thead><tbody>{rows.map(run => <tr key={run.id}><td><code>{run.id}</code></td><td><Status value={run.status} /></td><td>{short(JSON.stringify(run.input), 36)}</td><td>{short(String((run.state as any)?.messages?.at?.(-1)?.content || ''), 36)}</td><td>{String(run.metadata?.application_name || '控制台')}</td><td>{format(run.created_at)}</td><td><button onClick={() => go('runs')}>查看</button></td></tr>)}</tbody></table> : <Empty title="你还没有创建过异步任务" subtitle="请先搭建应用，调试运行后将在这里查看全过程和结果。" />}
+  const [status, setStatus] = useState('全部');
+  const statuses = Array.from(new Set(q.data.map(item => item.status)));
+  const rows = q.data.filter(item => (status === '全部' || item.status === status) && (item.id.includes(query) || JSON.stringify(item.input).includes(query)));
+  return <ConsolePage>
+    <div className="task-toolbar"><div className="task-status-filter"><button className={status === '全部' ? 'selected' : ''} onClick={() => setStatus('全部')}>全部 {q.data.length}</button>{statuses.map(item => <button className={status === item ? 'selected' : ''} key={item} onClick={() => setStatus(item)}>{taskStatusLabel[item] || item} {q.data.filter(x => x.status === item).length}</button>)}</div><label className="market-search">⌕<input value={query} onChange={e => setQuery(e.target.value)} placeholder="搜索 Task ID" /></label></div>
+    {rows.length ? <table className="task-table"><thead><tr><th>Task ID</th><th>状态</th><th>输入</th><th>输出</th><th>来源</th><th>创建时间</th><th>操作</th></tr></thead><tbody>{rows.map(run => <tr key={run.id}><td><code title={run.id}>{short(run.id, 18)}</code></td><td><Status value={run.status} /></td><td className="task-cell" title={humanize(run.input)}>{short(humanize(run.input), 42) || '—'}</td><td className="task-cell" title={lastOutput(run)}>{run.status === 'failed' && run.error ? <span className="task-error">{short(run.error, 42)}</span> : short(lastOutput(run), 42) || '—'}</td><td className="task-nowrap">{String(run.metadata?.application_name || '控制台')}</td><td className="task-nowrap">{format(run.created_at)}</td><td><button onClick={() => go('runs')}>查看</button></td></tr>)}</tbody></table> : <Empty title="你还没有创建过异步任务" subtitle="请先搭建应用，调试运行后将在这里查看全过程和结果。" />}
   </ConsolePage>;
+}
+
+const taskStatusLabel: Record<string, string> = { succeeded: '成功', failed: '失败', running: '运行中', queued: '排队中', canceled: '已取消', cancel_requested: '取消中' };
+
+// 把运行输入/输出里的原始 JSON 提炼成用户可读的一句话文本。
+function humanize(value: unknown, depth = 0): string {
+  if (value == null) return '';
+  if (typeof value === 'string') return value.replace(/\s+/g, ' ').trim();
+  if (typeof value === 'object' && depth < 2) {
+    const obj = value as Record<string, unknown>;
+    for (const key of ['input', 'query', 'message', 'text', 'prompt', 'content', 'task', 'goal', 'description']) {
+      if (typeof obj[key] === 'string' && String(obj[key]).trim()) return humanize(obj[key], depth + 1);
+    }
+    for (const key of Object.keys(obj)) {
+      const v = obj[key];
+      if (typeof v === 'string' && v.trim()) return humanize(v, depth + 1);
+    }
+  }
+  try { return JSON.stringify(value); } catch { return String(value); }
+}
+
+function lastOutput(run: Run): string {
+  const messages = (run.state as any)?.messages;
+  if (Array.isArray(messages) && messages.length) {
+    const last = messages[messages.length - 1];
+    return humanize(last?.content ?? last);
+  }
+  return '';
 }
 
 export function SkillMarket({ api, notify, go }: { api: ApiClient; notify: Notify; go: Go }) {
@@ -64,8 +94,7 @@ export function SkillMarket({ api, notify, go }: { api: ApiClient; notify: Notif
   const [query, setQuery] = useState('');
   const install = async (slug: string) => { try { const r = await api.post<any>(`/api/marketplace/skills/${slug}/install`); notify(r.message); go('skills'); } catch (e) { notify((e as Error).message, true); } };
   const items = q.data.filter(x => `${x.name}${x.category}${x.description}`.toLowerCase().includes(query.toLowerCase()));
-  return <ConsolePage title="Skill 管理" action={<button className="violet-btn" onClick={() => go('skills')}>＋ 自定义 Skill</button>}>
-    <div className="market-filter"><button className="selected">全部</button><button>代码开发</button><button>通用办公</button><button>金融</button><button>法律</button><button>教育</button><span className="filter-divider"/><label className="market-search">⌕<input value={query} onChange={e => setQuery(e.target.value)} placeholder="请输入，支持模糊搜索" /></label></div>
+  return <ConsolePage toolbar={<div className="market-filter"><button className="selected">全部</button><button>代码开发</button><button>通用办公</button><button>金融</button><button>法律</button><button>教育</button><span className="filter-divider"/><label className="market-search">⌕<input value={query} onChange={e => setQuery(e.target.value)} placeholder="请输入，支持模糊搜索" /></label></div>} action={<button className="violet-btn" onClick={() => go('skills')}>＋ 自定义 Skill</button>}>
     <div className="skill-grid">{items.map((item, index) => <article key={item.slug}><span className={`skill-logo l${index % 4}`}>▲</span><h3>{item.name}</h3><p>{item.description}</p><footer>更新于 2026-08-{String(4 + index).padStart(2, '0')}</footer><button className="install-btn" onClick={() => install(item.slug)}>安装 Skill</button></article>)}</div>
   </ConsolePage>;
 }
@@ -94,7 +123,7 @@ function MemoryWriteModal({bankId,api,close,done,notify}:{bankId:string;api:ApiC
 
 function MemoryDetail({bank,api,notify,close}:{bank:{id:string;name:string;description:string};api:ApiClient;notify:Notify;close:()=>void}){type Item={id:string;content:unknown;scope:string;scope_id?:string;tags:string[];ts:number;metadata:Record<string,unknown>};const [items,setItems]=useState<Item[]>([]),[query,setQuery]=useState(''),[scope,setScope]=useState(''),[content,setContent]=useState(''),[newScope,setNewScope]=useState('project'),[adding,setAdding]=useState(false);const load=()=>api.get<{items:Item[]}>(`/api/memory-banks/${bank.id}/memories?query=${encodeURIComponent(query)}&scope=${scope}`).then(value=>setItems(value.items));useEffect(()=>{load()},[bank.id,scope]);const add=async()=>{try{await api.post(`/api/memory-banks/${bank.id}/memories`,{content,scope:newScope,tags:['manual']});setContent('');setAdding(false);load();notify('记忆已添加')}catch(e){notify((e as Error).message,true)}};return <div className="skill-drawer-layer"><aside className="skill-drawer memory-detail"><header><div><h2>{bank.name}</h2><p>{bank.description||'查看和管理四级记忆内容'}</p></div><button onClick={close}>×</button></header><div className="memory-detail-tools"><label>⌕<input value={query} onChange={e=>setQuery(e.target.value)} onKeyDown={e=>e.key==='Enter'&&load()} placeholder="搜索记忆内容"/></label><select value={scope} onChange={e=>setScope(e.target.value)}><option value="">全部层级</option>{['working','task','project','global'].map(value=><option value={value} key={value}>{value.toUpperCase()}</option>)}</select><button className="primary" onClick={()=>setAdding(true)}>＋ 添加记忆</button></div><div className="memory-item-list">{items.map(item=><article key={item.id}><header><b>{item.scope.toUpperCase()}</b><time>{new Date(item.ts*1000).toLocaleString('zh-CN')}</time></header><p>{typeof item.content==='string'?item.content:JSON.stringify(item.content)}</p><small>{item.scope_id||'无作用域 ID'} {item.tags?.length?`· ${item.tags.join(' / ')}`:''}</small><button onClick={async()=>{if((await appConfirm('删除这条记忆？'))){await api.delete(`/api/memory-banks/${bank.id}/memories/${item.id}`);load()}}}>删除</button></article>)}{!items.length&&<div className="skill-drawer-empty">暂无匹配记忆</div>}</div>{adding&&<div className="memory-add"><h3>人工添加记忆</h3><select value={newScope} onChange={e=>setNewScope(e.target.value)}>{['working','task','project','global'].map(value=><option value={value} key={value}>{value.toUpperCase()}</option>)}</select><textarea rows={5} value={content} onChange={e=>setContent(e.target.value)} placeholder="输入需要记住的内容"/><footer><button onClick={()=>setAdding(false)}>取消</button><button className="primary" disabled={!content.trim()} onClick={add}>保存</button></footer></div>}</aside></div>}
 
-function ConsolePage({ title, subtitle, action, children }: { title: string; subtitle?: string; action?: React.ReactNode; children: React.ReactNode }) { return <div className="bailian-content"><div className="bailian-page-head"><div><h2>{title}</h2>{subtitle && <p>{subtitle}</p>}</div>{action}</div>{children}</div>; }
+function ConsolePage({ title, subtitle, toolbar, action, children }: { title?: string; subtitle?: string; toolbar?: React.ReactNode; action?: React.ReactNode; children: React.ReactNode }) { const hasHead = Boolean(title || subtitle || toolbar || action), head = toolbar ? toolbar : (title || subtitle) ? <div>{title && <h2>{title}</h2>}{subtitle && <p>{subtitle}</p>}</div> : <div />; return <div className="bailian-content">{hasHead && <div className="bailian-page-head">{head}{action}</div>}{children}</div>; }
 function Empty({ title, subtitle }: { title: string; subtitle?: string }) { return <div className="bailian-empty"><div>◇</div><h2>{title}</h2>{subtitle && <p>{subtitle}</p>}</div>; }
 function short(value: string, n: number) { return value.length > n ? `${value.slice(0, n)}…` : value; }
 function format(value?: string) { return value ? new Date(value).toLocaleString('zh-CN', { hour12: false }) : '-'; }
