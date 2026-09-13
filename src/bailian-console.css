@@ -5,6 +5,7 @@ body{min-width:0}
 .shell aside{background:#fff;border-right:1px solid #e6e8ee}
 .brand{height:64px;padding:0 18px}
 .brandmark{background:#615ced;border-radius:8px;box-shadow:none}
+.brandmark-img{background:transparent;box-shadow:none;object-fit:contain}
 .brand b{font-size:15px;color:#26244c}
 .brand small{color:rgba(38,36,76,.45)}
 nav{padding:12px 10px}
