@@ -153,14 +153,13 @@ function ToolEditor({ tool, api, notify, mcpPreset, onClose, onSubmit, onMcpConn
       adapter: finalAdapter,
       risk: form.risk,
       timeout_seconds: Number(form.timeout_seconds || 8),
-      ...(mode === 'mcp' ? { mcp_url: form.mcp_url.trim(), method: form.method.trim() || 'tools/list' } : {}),
-      ...(mode === 'script' ? { language: 'python', script: form.script } : {}),
+      language: 'python', script: form.script,
     };
     onSubmit({
       name: form.name.trim(),
       display_name: form.display_name.trim(),
       description: form.description,
-      category: mode === 'mcp' ? 'mcp' : form.category,
+      category: form.category,
       enabled: form.enabled,
       tags: split(form.tags),
       metadata,

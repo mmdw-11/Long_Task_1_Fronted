@@ -28,6 +28,7 @@
 .task-table .task-error{color:#d64545}
 .task-status-filter{display:flex;gap:6px;flex-wrap:wrap;margin-right:auto}
 .task-toolbar button.selected{background:#ececf2;color:#383c55;font-weight:700}
+.skill-create-modes{padding:18px 22px 0;border-top:1px solid #f0f1f5}.skill-create-modes button{padding:8px 12px}.skill-create-modes+.skill-custom-import{min-height:300px}.skill-custom-import .skill-risk-confirm{display:flex;align-items:flex-start;gap:8px}.skill-custom-import .skill-risk-confirm input{width:auto;margin-top:3px}
 .task-table th,.task-table td{padding:14px 16px}
 .task-table th:nth-child(1){width:150px}
 .task-table th:nth-child(2){width:100px}
