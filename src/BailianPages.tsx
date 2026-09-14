@@ -18,13 +18,13 @@ function useData<T>(api: ApiClient, path: string) {
   return { data, loading, load };
 }
 
-export function McpMarketplace({ api, notify, go }: { api: ApiClient; notify: Notify; go: Go }) {
+export function McpMarketplace({ api, notify, onConfigureMcp }: { api: ApiClient; notify: Notify; onConfigureMcp: (item: Pick<MarketItem, 'name' | 'slug'> & { mcp_url?: string }) => void }) {
   const q = useData<MarketItem>(api, '/api/marketplace/mcp');
   const [query, setQuery] = useState('');
-  const install = async (item:MarketItem) => { if(item.requires_configuration){notify('该条目需要实际 MCP 地址，请在智能体的“添加工具 → 自定义”中接入');go('apps');return}try { const result = await api.post<any>(`/api/marketplace/mcp/${item.slug}/install`); notify(result.message); q.load(); } catch (e) { notify((e as Error).message, true); } };
+  const install = async (item:MarketItem) => { if(item.requires_configuration){onConfigureMcp(item);return}try { const result = await api.post<any>(`/api/marketplace/mcp/${item.slug}/install`); notify(result.message); q.load(); } catch (e) { notify((e as Error).message, true); } };
   const items = q.data.filter(x => `${x.name}${x.category}${x.description}`.toLowerCase().includes(query.toLowerCase()));
   return <ConsolePage title="MCP 广场" action={<button className="icon-round" onClick={q.load}>↻</button>}>
-    <div className="market-filter"><button className="selected">精选</button><button>最新</button><button>分类</button><span className="filter-divider"/><label className="market-search">⌕<input placeholder="请输入，支持模糊搜索" value={query} onChange={e => setQuery(e.target.value)} /></label></div>
+    <div className="market-filter"><button className="selected">精选</button><span className="filter-divider"/><label className="market-search">⌕<input placeholder="请输入，支持模糊搜索" value={query} onChange={e => setQuery(e.target.value)} /></label></div>
     <div className="mcp-grid">{items.map((item, index) => <article className="mcp-card" key={item.slug}><div className={`mcp-cover ${item.cover || 'blue'}`}><b>{['◒', '◐', 'G', '⌁', '▣', 'AI'][index % 6]}</b><span> | 精选目录</span></div><div className="mcp-body"><h3>{item.name}</h3><p>{item.description}</p><footer><span>提供方：{item.provider || '项目精选目录'}</span><span>{item.requires_configuration?'需要配置':`${item.tool_count||0} 个工具`}</span></footer><button disabled={item.installed} className="install-btn" onClick={() => install(item)}>{item.installed?'已安装':item.requires_configuration?'前往自定义接入':'安装到工作区'}</button></div></article>)}</div>
     {!q.loading && !items.length && <Empty title="未找到匹配的 MCP" />}
   </ConsolePage>;
@@ -33,7 +33,7 @@ export function McpMarketplace({ api, notify, go }: { api: ApiClient; notify: No
 export function QuickStart({ api, notify, go }: { api: ApiClient; notify: Notify; go: Go }) {
   const q = useData<MarketItem>(api, '/api/marketplace/apps');
   const install = async (slug: string) => { try { await api.post(`/api/marketplace/apps/${slug}/install`); notify('应用模板已创建，可继续配置和调试'); go('apps'); } catch (e) { notify((e as Error).message, true); } };
-  return <ConsolePage title="快速开始" subtitle="3分钟完成 Agent 创建、配置与会话发起。全链路 API 驱动，基于现有 Agent Harness、TODO 与上下文防漂移能力。">
+  return <ConsolePage title="快速开始" subtitle="3分钟完成 Agent 创建与会话。">
     <section className="quick-hero"><div className="quick-steps">{[['1','创建一个智能体','选择模型、编写系统提示词、挂载 MCP 与技能。'],['2','配置一个运行环境','在当前项目中使用已配置的本地或云端模型适配器。'],['3','新增一个密钥库','集中管理 API Key 等敏感信息，供智能体安全调用。'],['4','创建会话并获取响应','启动运行，查看流式过程、工具审批和总结输出。']].map(([n,t,d]) => <div key={n}><em>{n}</em><h3>{t}</h3><p>{d}</p></div>)}</div><button className="violet-btn" onClick={() => install('blank-agent')}>✦ 快速开始</button></section>
     <h3 className="section-title">没有想法？从模板开始</h3><div className="template-grid">{q.data.map((item, index) => <article key={item.slug} onClick={() => install(item.slug)}><span>{['＋','◎','✧','ϟ'][index % 4]}</span><h3>{item.name}</h3><p>{item.description}</p>{index === 0 && <b className="recommend">推荐</b>}</article>)}</div>
   </ConsolePage>;
