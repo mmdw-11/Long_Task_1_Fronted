@@ -1,24 +1,24 @@
 import { appConfirm } from "./dialogs";
-// 工具管理页面，提供内置工具、MCP URL 和手写脚本三种接入控件。
+// 工具管理页面仅提供 MCP URL 与手写脚本两种接入方式。
 import { useEffect, useMemo, useState } from 'react';
 import type { ApiClient } from './api';
-import type { Tool } from './types';
+import type { ConnectionSchema, Tool } from './types';
 import './tools-page.css';
 
-type Props = { api: ApiClient; notify: (s: string, b?: boolean) => void };
-type ToolMode = 'builtin' | 'mcp' | 'script';
+type Props = { api: ApiClient; notify: (s: string, b?: boolean) => void; mcpPreset?: { name: string; url: string; marketSlug: string } | null; onMcpPresetConsumed?: () => void };
+type ToolMode = 'mcp' | 'script';
 
 const modeOptions: Array<{ key: ToolMode; title: string; desc: string }> = [
-  { key: 'builtin', title: '内置工具', desc: '绑定后端白名单适配器' },
   { key: 'mcp', title: 'MCP 服务', desc: '填写 MCP HTTP URL' },
   { key: 'script', title: '脚本工具', desc: '编写 Python 脚本' },
 ];
 
-export function ToolsPage({ api, notify }: Props) {
+export function ToolsPage({ api, notify, mcpPreset, onMcpPresetConsumed }: Props) {
   const q = useTools(api, notify);
   const [create, setCreate] = useState(false);
   const [edit, setEdit] = useState<Tool | null>(null);
   const enabledCount = q.tools.filter((item) => item.enabled).length;
+  useEffect(() => { if (mcpPreset) setCreate(true); }, [mcpPreset]);
 
   const submit = async (payload: unknown) => {
     try {
@@ -47,7 +47,7 @@ export function ToolsPage({ api, notify }: Props) {
         <div>
           <span>TOOL ACCESS</span>
           <h2>工具接入</h2>
-          <p>把内置能力、MCP 服务和脚本工具统一注册到后端，再按 Agent 维度授权使用。</p>
+          <p>接入 MCP 服务或脚本工具，再按 Agent 维度授权使用。</p>
         </div>
         <button className="primary" onClick={() => setCreate(true)}>＋ 添加工具</button>
       </div>
@@ -106,18 +106,22 @@ export function ToolsPage({ api, notify }: Props) {
         </article>
       )}
       {(create || edit) && (
-        <ToolEditor
+          <ToolEditor
           tool={edit}
+          api={api}
+          notify={notify}
+          mcpPreset={mcpPreset}
           onClose={() => { setCreate(false); setEdit(null); }}
           onSubmit={submit}
+          onMcpConnected={() => { setCreate(false); setEdit(null); onMcpPresetConsumed?.(); q.reload(); }}
         />
       )}
     </>
   );
 }
 
-function ToolEditor({ tool, onClose, onSubmit }: { tool: Tool | null; onClose: () => void; onSubmit: (v: unknown) => void }) {
-  const initialMode = (tool?.metadata?.source as ToolMode) || (tool?.metadata?.mcp_url ? 'mcp' : tool?.metadata?.script ? 'script' : 'builtin');
+function ToolEditor({ tool, api, notify, mcpPreset, onClose, onSubmit, onMcpConnected }: { tool: Tool | null; api: ApiClient; notify: Props['notify']; mcpPreset?: Props['mcpPreset']; onClose: () => void; onSubmit: (v: unknown) => void; onMcpConnected: () => void }) {
+  const initialMode = (tool?.metadata?.source as ToolMode) || (tool?.metadata?.mcp_url ? 'mcp' : tool ? 'script' : 'mcp');
   const [mode, setMode] = useState<ToolMode>(initialMode);
   const [form, setForm] = useState({
     name: tool?.name || '',
@@ -138,6 +142,8 @@ function ToolEditor({ tool, onClose, onSubmit }: { tool: Tool | null; onClose: (
     if (mode === 'script') return 'script';
     return form.adapter.trim() || form.name.trim();
   }, [form.adapter, form.name, mode]);
+
+  if (mode === 'mcp') return <McpConnectionEditor api={api} notify={notify} preset={mcpPreset} close={onClose} connected={onMcpConnected} selectScript={() => setMode('script')} />;
 
   const submit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -182,16 +188,9 @@ function ToolEditor({ tool, onClose, onSubmit }: { tool: Tool | null; onClose: (
             <label>唯一标识<input required disabled={!!tool} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></label>
             <label>分类<input value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} /></label>
             <label>标签<input value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} placeholder="email,mcp,read" /></label>
-            <label>后端适配器<input disabled={mode !== 'builtin'} value={finalAdapter} onChange={(e) => setForm({ ...form, adapter: e.target.value })} /></label>
+            <label>后端适配器<input disabled value={finalAdapter} /></label>
             <label>风险等级<select value={form.risk} onChange={(e) => setForm({ ...form, risk: e.target.value })}><option value="low">low</option><option value="read">read</option><option value="medium">medium</option><option value="high">high</option></select></label>
             <label className="span">描述<textarea rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></label>
-            {mode === 'mcp' && (
-              <>
-                <label className="span">MCP HTTP URL<input required value={form.mcp_url} onChange={(e) => setForm({ ...form, mcp_url: e.target.value })} placeholder="http://127.0.0.1:3000/mcp" /></label>
-                <label>JSON-RPC 方法<input value={form.method} onChange={(e) => setForm({ ...form, method: e.target.value })} /></label>
-                <label>超时秒数<input value={form.timeout_seconds} onChange={(e) => setForm({ ...form, timeout_seconds: e.target.value })} /></label>
-              </>
-            )}
             {mode === 'script' && (
               <label className="span">Python 脚本<textarea className="code" rows={12} value={form.script} onChange={(e) => setForm({ ...form, script: e.target.value })} /></label>
             )}
@@ -208,6 +207,47 @@ function ToolEditor({ tool, onClose, onSubmit }: { tool: Tool | null; onClose: (
       </div>
     </div>
   );
+}
+
+function McpConnectionEditor({ api, notify, preset, close, connected, selectScript }: { api: ApiClient; notify: Props['notify']; preset?: Props['mcpPreset']; close: () => void; connected: () => void; selectScript: () => void }) {
+  const [name, setName] = useState(preset?.name || '');
+  const [url, setUrl] = useState(preset?.url || '');
+  const [schema, setSchema] = useState<ConnectionSchema | null>(null);
+  const [configuration, setConfiguration] = useState<Record<string, string>>({});
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  useEffect(() => { setName(preset?.name || ''); setUrl(preset?.url || ''); setSchema(null); setConfiguration({}); }, [preset]);
+  const changeUrl = (value: string) => { setUrl(value); setSchema(null); setConfiguration({}); };
+  const openAuthorization = (address: string) => {
+    const popup = window.open('about:blank', 'mcp-oauth', 'popup,width=640,height=760');
+    if (popup) popup.location.href = address;
+    else window.location.assign(address);
+  };
+  const detect = async () => {
+    setBusy(true); setError('');
+    try {
+      const result = await api.post<{ name: string; schema: ConnectionSchema; oauth_callback_url: string }>('/api/tool-connections/mcp/probe', { url, market_slug: preset?.marketSlug || '' });
+      const found = { ...result.schema, oauth_callback_url: result.oauth_callback_url };
+      setSchema(found);
+      setConfiguration(Object.fromEntries(found.fields.map(field => [field.name, field.default || ''])));
+      if (!name && result.name) setName(result.name);
+      notify(found.fields.length ? '已识别所需配置，请填写新增字段后继续。' : '已识别 MCP 服务，请继续连接。');
+    } catch (e) { setError((e as Error).message); } finally { setBusy(false); }
+  };
+  const connect = async () => {
+    const missing = (schema?.fields || []).filter(field => field.required && !configuration[field.name]?.trim());
+    if (missing.length) { setError(`请填写：${missing.map(field => field.label).join('、')}`); return; }
+    setBusy(true); setError('');
+    try {
+      const result = await api.post<{ connection: { tool_count: number }; authorization?: { authorization_url: string } }>('/api/tool-connections/mcp', { url, name: name || '自定义 MCP', configuration, market_slug: preset?.marketSlug || '' });
+      if (result.authorization?.authorization_url) {
+        openAuthorization(result.authorization.authorization_url);
+        notify('已打开服务商官网完成登录授权；返回后会自动同步工具。');
+      } else notify(`连接成功，发现 ${result.connection.tool_count} 个工具。`);
+      connected();
+    } catch (e) { setError((e as Error).message); } finally { setBusy(false); }
+  };
+  return <div className="skill-drawer-layer" onMouseDown={e => e.target === e.currentTarget && close()}><aside className="skill-drawer tool-drawer"><header><div><h2>添加工具</h2><p>先检测 MCP 服务；只有需要登录授权时才会打开服务商官网。</p></div><button aria-label="关闭" onClick={close}>×</button></header><div className="skill-import-modes"><button className="active">MCP 服务</button><button onClick={selectScript}>脚本工具</button></div><div className="skill-custom-import tool-custom"><label>连接名称<input autoFocus value={name} onChange={e => setName(e.target.value)} placeholder="企业 MCP 服务" /></label><label>MCP HTTPS 地址<input value={url} onChange={e => changeUrl(e.target.value)} placeholder="https://example.com/mcp" /></label>{schema && <div className="tool-schema"><b>{schema.help_text || '已识别服务配置'}</b>{schema.oauth_callback_url && <small>授权回调地址：<code>{schema.oauth_callback_url}</code></small>}{schema.fields.map(field => <label key={field.name}>{field.label}{field.required ? ' *' : ''}<input type={field.type === 'secret' ? 'password' : 'text'} value={configuration[field.name] || ''} onChange={e => setConfiguration(current => ({ ...current, [field.name]: e.target.value }))} placeholder={field.description || field.label} /><small>{field.description}</small></label>)}</div>}{error && <div className="import-error">{error}</div>}<footer><button onClick={close}>取消</button>{!schema ? <button className="primary" disabled={busy || !url.trim()} onClick={detect}>{busy ? '正在检测…' : '检测 MCP 配置'}</button> : <button className="primary" disabled={busy} onClick={connect}>{busy ? '正在连接…' : schema.fields.length ? '保存并连接' : '连接并安装'}</button>}</footer></div></aside></div>;
 }
 
 function useTools(api: ApiClient, notify: Props['notify']) {
