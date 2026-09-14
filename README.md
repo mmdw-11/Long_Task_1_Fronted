@@ -2,6 +2,16 @@
 
 与 `long_task_1` FastAPI 后端完整配套的 React + TypeScript 管理控制台。
 
+## Docker 运行
+
+不要单独启动此前端目录。请到相邻后端目录 `../long_task_1` 执行：
+
+```bash
+docker compose up --build -d
+```
+
+随后访问 `http://localhost:8080`。生产部署下 nginx 会把 `/api` 自动转发到后端容器，页面的“后端连接”应保持默认值 `/`。
+
 ## 启动
 
 ```powershell
